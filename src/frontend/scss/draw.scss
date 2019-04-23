@@ -1,0 +1,194 @@
+@import "variables";
+
+textarea.clibpoard
+{
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 2em;
+	height: 2em;
+	padding: 0;
+	border: none;
+	outline: none;
+	box-shadow: none;
+	background: transparent;
+}
+
+nav.menu-draw
+{	
+	ul
+	{
+		display: grid; 
+		grid-template-columns: repeat(3, 1fr);
+	}
+}
+
+.options-container
+{
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+
+	.settings-btn
+	{
+		color: $disabledColor;
+
+		&:hover
+		{
+			color: $disabledColorHover;
+		}
+	}
+}
+
+#drawing-url
+{
+	border: solid 1px white;
+	padding-left: 10px;
+	padding-right: 10px;
+	grid-column: 2 / 5;
+}
+
+.url-icon
+{
+	margin-left: 10px;
+}
+
+main
+{
+	display: grid;
+	grid-gap: 2.5%;
+	grid-template-columns: 5% 90%;
+}
+
+canvas
+{
+	border: solid 1px black;
+	cursor: crosshair;
+	justify-self: center;
+	align-self: center;
+	grid-column: 2;
+}
+
+.toolbar
+{
+	min-width: 40px;
+	height: 100vh;
+	background-color: $dark;
+	padding: 0;
+	margin: 0;
+	text-align: center;
+	color: white;
+	font-size: 26px;
+	grid-column: 1;
+
+	.separator
+	{
+		color: white;
+		border: solid 1px transparent;
+		padding: 6px 4px 10px 4px;
+		border-bottom: solid 1px white;
+		margin-bottom: 10px;
+	}
+
+	.btn
+	{
+		display: block;
+		color: $light;
+		padding: 6px;
+		border-radius: 5px;
+		margin: 0 auto;
+		margin-bottom: 5px;
+
+		&:hover
+		{
+			cursor: pointer;
+			border-color: white;
+			color: white;
+		}
+	}
+	
+	ul
+	{
+		list-style: none;
+		padding: 0;
+		margin: 0px;
+	}
+
+	.btn-color
+	{
+		display: block;
+		border: solid 1px $light;
+		width: 30px;
+		height: 30px;
+		border-radius: 10px;
+		padding: 0;
+		margin-bottom: 7px;
+
+		&:hover
+		{
+			cursor: pointer;
+			filter: brightness(1.5);
+		}
+	}
+
+	.selected
+	{
+		color: $linkColorLight;
+		padding-left: 0;
+		padding-right: 0;
+		
+		&:hover
+		{
+			color: $primaryColorLight;
+		}
+	}
+
+	.selected-color
+	{
+		border-color: $linkColorLight;
+	}
+
+	.disabled
+	{
+		color: $disabledColor;
+
+		&:hover
+		{
+			color: $disabledColorHover;
+		}
+	}
+
+	.color-picker
+	{
+		@extend .btn-color;
+		border-radius: 5px;
+		margin: 0 auto;
+		margin-bottom: 15px;
+	}
+}
+
+.notification
+{
+	background: rgba(0,0,0,0.6);
+	color: white;
+	padding: 20px 7px 20px 7px;
+	text-align: center;
+	position: absolute;
+	right: 10px;
+	bottom: 10px;
+	border-radius: 5px;
+	white-space: nowrap;
+	animation: notif 5s;
+
+	&:hover
+	{
+		background: rgba(0,0,0,0.7);
+	}
+}
+
+@keyframes notif
+{
+	0% { opacity: 0; }
+	10% { opacity: 1; }
+	75% { opacity: 1; }
+	100% { opacity: 0; }
+}

@@ -1,0 +1,159 @@
+@import "variables";
+
+body
+{
+	font-family: Lato;
+	margin: 0;
+	padding: 0;
+	color: rgb(30, 30, 30);
+	font-size: 20px;
+}
+
+a
+{
+	text-decoration: none;
+	outline: none;
+
+	&:active
+	{
+		outline: none;
+	}
+}
+
+.draw-btn
+{
+	background-color: $primaryColorLight;
+	color: white;
+	border: none;
+	border-radius: 5px;
+	padding: 10px;
+	font-size: $btnFontSize;
+	border: solid 1px $primaryColorDark;
+	
+	&:hover
+	{
+		background-color: $primaryColor;
+		box-shadow: 0px 0px 3px $dark;
+	}
+}
+
+.draw-btn-alt
+{
+	border: solid 1px white;
+	padding: 5px;
+	border-radius: 5px;
+
+	&:hover
+	{
+		border-color: $linkColorLight;
+	}
+}
+
+nav.menu
+{
+	margin: 0;
+	padding: 0;
+	background: $dark;
+	color: white;
+	font-size: $navFontSize;
+
+	a
+	{
+		color: white;
+
+		&:hover
+		{
+			color: $linkColorLight;
+		}
+	}
+
+	ul
+	{
+		list-style: none;
+		margin: 0;
+		padding: 10px;
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+	}
+
+	ul li
+	{
+		text-align: center;
+	}
+}
+
+.welcome
+{
+	background: url(../img/bg.png);
+	background-size: cover;
+	background-position: center;
+	height: 50vh;
+	padding: 50px;
+	text-align: center;
+
+	h2
+	{
+		margin: 0;
+		text-align: center;
+		margin-bottom: 35vh;
+		color: $dark;
+		text-shadow: 0 0 3px white;
+		font-size: 42px;
+	}
+}
+
+.about
+{
+	text-align: center;
+	padding-top: 20px;
+}
+
+.img-link
+{
+	background: url(../img/syncpaint-link.png);
+	background-position: center;
+	background-size: cover;
+	width: 400px;
+	height: 50px;
+	margin: 0 auto;
+}
+
+.grid
+{
+	display: grid;
+	grid-template-columns: 30% 60%;
+	grid-gap: 100px;
+	height: 500px;
+	justify-content: center;
+	align-content: center;
+	text-align: left;
+	margin: 0 auto;
+	padding: 0 100px 0 100px;
+}
+
+.img-toolbar
+{
+	background: url(../img/toolbar.png);
+	background-position: center;
+	background-size: cover;
+	height: 300px;
+	width: 50px;
+	justify-self: end;
+}
+
+.text-box
+{
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+
+	h2
+	{
+		margin: 0;
+	}
+	
+	p
+	{
+		margin: 0;
+	}
+}
