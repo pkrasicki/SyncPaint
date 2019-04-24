@@ -15,20 +15,21 @@ window.addEventListener("load", () =>
 		return;
 
 	const ctx = canvas.getContext("2d");
-	const cursor = document.querySelector("#cursor");
 	const toolbarElement = document.querySelector(".toolbar");
 	const drawingUrl = document.querySelector("#drawing-url");
 	const saveBtn = document.querySelector("#save");
+	const colorPicker = document.querySelector("#color-picker");
 
-	const canvasWidth = 0.85;
-	const canvasHeight = 0.85;
-	const defaultBrushSize = 10;
+	const canvasWidth = 0.9;
+	const canvasHeight = 0.9;
+	const defaultBrushSize = 20;
 	const defaultPaintColor = "#000000";
 	const defaultPaintTool = "Brush";
 	var isDrawing = false;
 	var paintTool = getTool(defaultPaintTool, defaultBrushSize, defaultPaintColor);
 	var canvasScale = {x: 1, y: 1};
 	var socket;
+	var brushBoundsPreview;
 
 	// set canvas size based on window dimensions
 	function setCanvasSize()
@@ -65,10 +66,10 @@ window.addEventListener("load", () =>
 		const size = paintTool.size;
 		const color = paintTool.color;
 		paintTool = getTool(type, size, color);
-		updateCursorShape();
+		updateBrushPreview();
 	}
 
-	// toolbar color icon clicked
+	// color change by clicking a toolbar icon or editing color input
 	function paintColorSwitch(e)
 	{
 		var previouslySelected = document.querySelector(".selected-color");
@@ -78,8 +79,18 @@ window.addEventListener("load", () =>
 
 		e.target.classList.add("selected-color");
 
-		paintTool.setColor(e.target.style.backgroundColor);
-		updateCursorColor();
+		var color;
+		if (e.target == colorPicker)
+		{
+			color = e.target.value;
+		} else
+		{
+			color = e.target.style.backgroundColor;
+			colorPicker.parentElement.style.backgroundColor = color;
+		}
+
+		paintTool.setColor(color);
+		updateBrushPreview();
 	}
 
 	function addToolbarIcons()
@@ -102,7 +113,7 @@ window.addEventListener("load", () =>
 			ul.appendChild(icon);
 		});
 
-		toolbar.getColorIcons(paintColorSwitch, colorPickerChange).forEach(icon =>
+		toolbar.getColorIcons(paintColorSwitch).forEach(icon =>
 		{
 			if (!isDefaultColorFound && icon.dataset.color == defaultPaintColor)
 			{
@@ -151,8 +162,8 @@ window.addEventListener("load", () =>
 
 	function onCanvasMouseMove(e)
 	{
-		cursor.style.left = (e.clientX - cursor.offsetWidth / 2) + "px";
-		cursor.style.top = (e.clientY - cursor.offsetHeight / 2) + "px";
+		brushBoundsPreview.style.left = (e.clientX - brushBoundsPreview.offsetWidth / 2) + "px";
+		brushBoundsPreview.style.top = (e.clientY - brushBoundsPreview.offsetHeight / 2) + "px";
 
 		if (isDrawing)
 			paint(getCanvasLocalPos(e));
@@ -162,9 +173,11 @@ window.addEventListener("load", () =>
 	function getCanvasLocalPos(e)
 	{
 		var canvasRect = canvas.getBoundingClientRect();
+		const correctionOffset = -1; // where is this offset coming from?
+
 		return {
-			x: (e.clientX - canvasRect.x) / canvasScale.x,
-			y: (e.clientY - canvasRect.y) / canvasScale.y
+			x: ((e.clientX + correctionOffset) - canvasRect.x) / canvasScale.x,
+			y: ((e.clientY + correctionOffset) - canvasRect.y) / canvasScale.y
 		};
 	}
 
@@ -215,35 +228,43 @@ window.addEventListener("load", () =>
 			socket.emit("draw", {x: pos.x, y: pos.y, tool: _tool});
 	}
 
-	// cursor is a small element that follows mouse cursor. It's a preview of currently selected brush
-	function createCursor()
+	// a small element that follows mouse cursor. It visualizes the brush size and shape
+	function createBrushPreview()
 	{
-		cursor.style.position = "absolute";
-		cursor.style.cursor = "crosshair";
-		cursor.style.pointerEvents = "none";
-		cursor.style.visibility = "hidden";
-		cursor.style.top = (window.height / 2) + "px";
-		cursor.style.left = (window.width / 2) + "px";
+		brushBoundsPreview = document.createElement("div");
+		brushBoundsPreview.classList.add("brush-preview");
+		brushBoundsPreview.style.position = "absolute";
+		brushBoundsPreview.style.cursor = "crosshair";
+		brushBoundsPreview.style.pointerEvents = "none";
+		brushBoundsPreview.style.visibility = "hidden";
+		brushBoundsPreview.style.borderStyle = "dotted";
+		brushBoundsPreview.style.borderWidth = "2px";
+		brushBoundsPreview.dataset.brushBoundsPreview = true;
 
-		updateCursorColor();
-		updateCursorShape();
+		document.body.appendChild(brushBoundsPreview);
+
+		updateBrushPreview();
 	}
-
-	function updateCursorColor()
+	
+	function updateBrushPreview()
 	{
-		cursor.style.background = paintTool.color;
-	}
-
-	function updateCursorShape()
-	{
-		cursor.style.width = paintTool.size + "px";
-		cursor.style.height = paintTool.size + "px";
-		cursor.style.boxShadow = `0 0 ${paintTool.blur}px ${paintTool.color}`;
-
-		if (paintTool.style == "round")
-			cursor.style.borderRadius = "50px";
-		else
-			cursor.style.borderRadius = "0";
+		document.querySelectorAll(".brush-preview").forEach(item =>
+		{
+			if(item.dataset.brushBoundsPreview)
+			{
+				item.style.width = (paintTool.size + paintTool.blur / 2) + "px";
+				item.style.height = (paintTool.size + paintTool.blur / 2) + "px";
+			} else
+			{
+				item.style.background = paintTool.color;
+				item.style.boxShadow = `0 0 ${paintTool.blur}px ${paintTool.color}`;
+			}
+	
+			if (paintTool.style == "round")
+				item.style.borderRadius = "50px";
+			else
+				item.style.borderRadius = "0";
+		});
 	}
 
 	// download canvas image
@@ -310,18 +331,20 @@ window.addEventListener("load", () =>
 		});
 		e.target.classList.add("selected-color");
 		paintTool.setColor(e.target.value);
-		updateCursorColor();
+		updateBrushPreview();
 	}
 
 	canvas.addEventListener("mousemove", onCanvasMouseMove);
 	canvas.addEventListener("mouseover", (e) =>
 	{
-		cursor.style.visibility = "visible";
+		brushBoundsPreview.style.visibility = "visible";
+		brushBoundsPreview.style.left = (e.clientX - brushBoundsPreview.offsetWidth / 2) + "px"
+		brushBoundsPreview.style.top = (e.clientY - brushBoundsPreview.offsetHeight / 2) + "px"
 	});
 
 	canvas.addEventListener("mouseout", (e) =>
 	{
-		cursor.style.visibility = "hidden";
+		brushBoundsPreview.style.visibility = "hidden";
 	});
 
 	// window.addEventListener("resize", setCanvasSize);
@@ -333,9 +356,10 @@ window.addEventListener("load", () =>
 	canvas.addEventListener("mouseup", endPosition);
 	drawingUrl.addEventListener("click", onDrawingUrlClicked);
 	saveBtn.addEventListener("click", onSaveBtnClicked);
+	colorPicker.addEventListener("change", paintColorSwitch);
 
 	initializeSocket();
 	setCanvasSize();
 	addToolbarIcons();
-	createCursor();
+	createBrushPreview();
 });

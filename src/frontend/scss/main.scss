@@ -1,5 +1,11 @@
 @import "variables";
 
+html
+{
+	min-height: 100%;
+	position: relative;
+}
+
 body
 {
 	font-family: Lato;
@@ -7,6 +13,7 @@ body
 	padding: 0;
 	color: rgb(30, 30, 30);
 	font-size: 20px;
+	height: 100%;
 }
 
 a
@@ -56,6 +63,7 @@ nav.menu
 	background: $dark;
 	color: white;
 	font-size: $navFontSize;
+	height: 39px;
 
 	a
 	{

@@ -61,9 +61,9 @@ class Toolbar
 			colors:
 			[
 				{
-					tooltip: "white",
+					tooltip: "black",
 					icon: "btn-color",
-					color: "#ffffff"
+					color: "#000000"
 				},
 				{
 					tooltip: "red",
@@ -78,12 +78,12 @@ class Toolbar
 				{
 					tooltip: "blue",
 					icon: "btn-color",
-					color: "#0000ff"
+					color: "#1b86eb"
 				},
 				{
-					tooltip: "black",
+					tooltip: "white",
 					icon: "btn-color",
-					color: "#000000"
+					color: "#ffffff"
 				}
 			]
 		};
@@ -122,18 +122,9 @@ class Toolbar
 		return icons;
 	}
 
-	getColorIcons(clickCallback, colorPickerChangeCallback)
+	getColorIcons(clickCallback)
 	{
 		var icons = [];
-
-		var colorPicker = document.createElement("li");
-		var input = document.createElement("input");
-		input.type = "color";
-		input.title = "color picker";
-		input.classList.add("color-picker");
-		input.addEventListener("change", colorPickerChangeCallback);
-		colorPicker.appendChild(input);
-		icons.push(colorPicker);
 
 		this.icons.colors.forEach(item =>
 		{

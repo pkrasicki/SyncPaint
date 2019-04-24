@@ -21,21 +21,76 @@ nav.menu-draw
 		display: grid; 
 		grid-template-columns: repeat(3, 1fr);
 	}
+
+	.btn
+	{
+		color: $light;
+		&:hover
+		{
+			color: white;
+		}
+	}
 }
 
 .options-container
 {
 	display: grid;
 	grid-template-columns: repeat(2, 1fr);
-
+	
 	.settings-btn
 	{
 		color: $disabledColor;
-
+		
 		&:hover
 		{
 			color: $disabledColorHover;
 		}
+	}
+}
+
+.brush-properties-container
+{
+	@extend .options-container;
+	grid-template-columns: 1fr 1fr;
+
+	.brush-properties
+	{
+		display: flex;
+		flex-direction: row;
+		justify-content: center;
+		justify-items: center;
+	}
+
+	.brush-preview
+	{
+		align-self: center;
+		width: 20px;
+		height: 20px;
+
+		&:hover
+		{
+			filter: brightness($brightnessFilterAmount);
+		}
+
+		input
+		{
+			padding: 0;
+			margin: 0;
+			opacity: 0;
+			cursor: pointer;
+			display: inline-block;
+			height: 100%;
+			width: 100%;
+			border: none;
+			outline: none;
+		}
+	}
+
+	.brush-size
+	{
+		display: inline-block;
+		cursor: pointer;
+		margin-left: 10px;
 	}
 }
 
@@ -45,6 +100,7 @@ nav.menu-draw
 	padding-left: 10px;
 	padding-right: 10px;
 	grid-column: 2 / 5;
+	white-space: nowrap;
 }
 
 .url-icon
@@ -57,12 +113,16 @@ main
 	display: grid;
 	grid-gap: 2.5%;
 	grid-template-columns: 5% 90%;
+	position:absolute;
+	top: 39px;
+	bottom:0;
+	left:0;
+	right:0;
 }
 
 canvas
 {
 	border: solid 1px black;
-	cursor: crosshair;
 	justify-self: center;
 	align-self: center;
 	grid-column: 2;
@@ -71,7 +131,7 @@ canvas
 .toolbar
 {
 	min-width: 40px;
-	height: 100vh;
+	height: 100%;
 	background-color: $dark;
 	padding: 0;
 	margin: 0;
@@ -126,7 +186,7 @@ canvas
 		&:hover
 		{
 			cursor: pointer;
-			filter: brightness(1.5);
+			filter: brightness($brightnessFilterAmount);
 		}
 	}
 

@@ -11,10 +11,18 @@
 	<header>
 		<nav class="menu menu-draw">
 			<ul>
-				<li><a href="index.html"><i class="fas fa-paint-brush"></i> SyncPaint</a></li>
+				<li class="brush-properties-container">
+					<a href="index.html"><i class="fas fa-paint-brush"></i> SyncPaint</a>
+					<div class="brush-properties">
+						<div class="brush-preview">
+							<input type="color" id="color-picker"/>
+						</div>
+						<a href="#" class="btn brush-size">20px</a>
+					</div>
+				</li>
 				<li><a href="#" class="draw-btn-alt" id="drawing-url" title="copy to clickboard" data-clipboard=""></a></li>
 				<li class="options-container">
-					<div><a href="#" title="save image to disk" id="save" download="canvas.png"><i class="fas fa-save"></i> Save</i></a></div>
+					<div><a href="#" class="btn" title="save image to disk" id="save" download="canvas.png"><i class="fas fa-save"></i> Save</i></a></div>
 					<div><a href="#" class="settings-btn" title="not available yet"><i class="fas fa-cog"></i> Settings</i></a></div>
 				</li>
 			</ul>
@@ -24,7 +32,6 @@
 	<main>
 		<aside class="toolbar"></aside>
 		<canvas id="drawArea"></canvas>
-		<div id="cursor"></div>
 	</main>
 </body>
 </html>
