@@ -90,7 +90,7 @@ nav.menu-draw
 	{
 		display: inline-block;
 		cursor: pointer;
-		margin-left: 10px;
+		margin-left: 20px;
 	}
 }
 
@@ -242,6 +242,26 @@ canvas
 	&:hover
 	{
 		background: rgba(0,0,0,0.7);
+	}
+}
+
+.brush-size-menu
+{
+	width: 200px;
+	padding: 80px;
+	background: $dark;
+	border: solid 1px black;
+	border-radius: 5px;
+	position: absolute;
+	top: 40px;
+	visibility: hidden;
+	margin: 0;
+	padding: 0;
+	z-index: 1;
+
+	.size-slider
+	{
+		margin-top: 5px;
 	}
 }
 

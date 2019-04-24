@@ -7,6 +7,7 @@ import {Pencil} from "./tools/pencil";
 import {PaintRoller} from "./tools/paint-roller";
 import {Toolbar} from "./toolbar/toolbar";
 import {Notification} from "./notification/notification";
+import {NetDrawData} from "./net-draw-data/net-draw-data";
 
 window.addEventListener("load", () =>
 {
@@ -19,6 +20,10 @@ window.addEventListener("load", () =>
 	const drawingUrl = document.querySelector("#drawing-url");
 	const saveBtn = document.querySelector("#save");
 	const colorPicker = document.querySelector("#color-picker");
+	const brushSizeBtn = document.querySelector(".brush-size");
+	const brushSizeMenu = document.querySelector(".brush-size-menu");
+	const sizeSlider = document.querySelector(".size-slider");
+	const sizeValueSpan = document.querySelector(".size-value");
 
 	const canvasWidth = 0.9;
 	const canvasHeight = 0.9;
@@ -183,23 +188,29 @@ window.addEventListener("load", () =>
 
 	// start drawing path
 	// isLocal - if the action is done by the local user
-	// _pos - drawing coordinates of another user received over the network
-	function startPosition(e, isLocal=true, _pos=null)
+	// netDrawData - draw data of another user received over the network
+	function startPosition(e, isLocal=true, netDrawData=null)
 	{
 		var pos;
 		if (isLocal)
 		{
 			pos = getCanvasLocalPos(e);
-			socket.emit("drawStart", {x: pos.x, y: pos.y});
+			socket.emit("drawStart", new NetDrawData(pos.x, pos.y, paintTool));
 		} else
 		{
-			pos = _pos;
+			pos = {x: netDrawData.x, y: netDrawData.y};
 		}
 
-		isDrawing = true;
+		if (isLocal)
+			isDrawing = true;
+
 		ctx.beginPath();
 		ctx.moveTo(pos.x, pos.y);
-		paint(pos, isLocal);
+
+		if (isLocal)
+			paint(pos, isLocal);
+		else
+			paint(pos, isLocal, netDrawData.tool);
 	}
 
 	function endPosition()
@@ -214,18 +225,18 @@ window.addEventListener("load", () =>
 		if (!isDrawing && isLocal)
 			return;
 
-		ctx.lineTo(pos.x, pos.y);
 		ctx.lineWidth = _tool.size;
 		ctx.lineCap = _tool.style;
 		ctx.strokeStyle = _tool.color;
 		ctx.shadowBlur = _tool.blur;
 		ctx.shadowColor = _tool.color;
+		ctx.lineTo(pos.x, pos.y);
 		ctx.stroke();
 		ctx.beginPath();
 		ctx.moveTo(pos.x, pos.y);
 
 		if (isLocal)
-			socket.emit("draw", {x: pos.x, y: pos.y, tool: _tool});
+			socket.emit("draw", new NetDrawData(pos.x, pos.y, paintTool));
 	}
 
 	// a small element that follows mouse cursor. It visualizes the brush size and shape
@@ -261,7 +272,7 @@ window.addEventListener("load", () =>
 			}
 	
 			if (paintTool.style == "round")
-				item.style.borderRadius = "50px";
+				item.style.borderRadius = "50%";
 			else
 				item.style.borderRadius = "0";
 		});
@@ -296,14 +307,14 @@ window.addEventListener("load", () =>
 				new Notification(`User ${userName} has left`);
 			});
 	
-			socket.on("drawStart", data =>
+			socket.on("drawStart", netDrawData =>
 			{
-				startPosition(null, false, data);
+				startPosition(null, false, netDrawData);
 			});
 			
-			socket.on("draw", data =>
+			socket.on("draw", netDrawData =>
 			{
-				paint({x: data.x, y: data.y}, false, data.tool);
+				paint({x: netDrawData.x, y: netDrawData.y}, false, netDrawData.tool);
 			});
 
 			socket.on("canvasRequest", () =>
@@ -322,18 +333,29 @@ window.addEventListener("load", () =>
 		}
 	}
 
-	function colorPickerChange(e)
+	function brushSizeBtnClicked(e)
 	{
-		var prevSelected = document.querySelectorAll(".selected-color");
-		prevSelected.forEach(item =>
+		e.preventDefault();
+
+		if (brushSizeMenu.style.visibility == "visible")
 		{
-			item.classList.remove("selected-color");
-		});
-		e.target.classList.add("selected-color");
-		paintTool.setColor(e.target.value);
+			brushSizeMenu.style.visibility = "hidden";
+		} else
+		{
+			brushSizeMenu.style.visibility = "visible";
+			var rect = e.target.getBoundingClientRect();
+			brushSizeMenu.style.left = (rect.x - brushSizeMenu.offsetWidth / 2) + "px";
+		}
+	}
+
+	function brushSizeChange(e)
+	{
+		sizeValueSpan.innerHTML = e.target.value + "px";
+		paintTool.setSize(Number(e.target.value));
 		updateBrushPreview();
 	}
 
+	// window.addEventListener("resize", setCanvasSize);
 	canvas.addEventListener("mousemove", onCanvasMouseMove);
 	canvas.addEventListener("mouseover", (e) =>
 	{
@@ -347,19 +369,23 @@ window.addEventListener("load", () =>
 		brushBoundsPreview.style.visibility = "hidden";
 	});
 
-	// window.addEventListener("resize", setCanvasSize);
+	canvas.addEventListener("mousedown", startPosition);
+	canvas.addEventListener("mouseup", endPosition);
+
 	window.addEventListener("mouseup", e =>
 	{
 		isDrawing = false;
 	});
-	canvas.addEventListener("mousedown", startPosition);
-	canvas.addEventListener("mouseup", endPosition);
 	drawingUrl.addEventListener("click", onDrawingUrlClicked);
 	saveBtn.addEventListener("click", onSaveBtnClicked);
 	colorPicker.addEventListener("change", paintColorSwitch);
+	brushSizeBtn.addEventListener("click", brushSizeBtnClicked);
+	sizeSlider.addEventListener("input", brushSizeChange);
 
 	initializeSocket();
 	setCanvasSize();
 	addToolbarIcons();
 	createBrushPreview();
+
+	sizeSlider.value = defaultBrushSize;
 });
