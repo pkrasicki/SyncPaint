@@ -63,7 +63,6 @@ nav.menu-draw
 
 	.brush-preview
 	{
-		align-self: center;
 		width: 20px;
 		height: 20px;
 
@@ -94,7 +93,7 @@ nav.menu-draw
 	}
 }
 
-#drawing-url
+#room-url
 {
 	border: solid 1px white;
 	padding-left: 10px;
@@ -215,14 +214,6 @@ canvas
 		{
 			color: $disabledColorHover;
 		}
-	}
-
-	.color-picker
-	{
-		@extend .btn-color;
-		border-radius: 5px;
-		margin: 0 auto;
-		margin-bottom: 15px;
 	}
 }
 
