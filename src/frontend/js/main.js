@@ -7,7 +7,7 @@ import {Pencil} from "./tools/pencil";
 import {PaintRoller} from "./tools/paint-roller";
 import {Toolbar} from "./toolbar/toolbar";
 import {Notification} from "./notification/notification";
-import {NetDrawData} from "./net-draw-data/net-draw-data";
+import {DrawingData} from "./drawing-data/drawing-data";
 
 window.addEventListener("load", () =>
 {
@@ -17,7 +17,7 @@ window.addEventListener("load", () =>
 
 	const ctx = canvas.getContext("2d");
 	const toolbarElement = document.querySelector(".toolbar");
-	const drawingUrl = document.querySelector("#drawing-url");
+	const roomUrl = document.querySelector("#room-url");
 	const saveBtn = document.querySelector("#save");
 	const colorPicker = document.querySelector("#color-picker");
 	const brushSizeBtn = document.querySelector(".brush-size");
@@ -32,9 +32,10 @@ window.addEventListener("load", () =>
 	const defaultPaintTool = "Brush";
 	var isDrawing = false;
 	var paintTool = getTool(defaultPaintTool, defaultBrushSize, defaultPaintColor);
-	var canvasScale = {x: 1, y: 1};
 	var socket;
 	var brushBoundsPreview;
+	var drawingStartPos = {x: 0, y: 0};
+	var drawingEndPos = {x: 0, y: 0};
 
 	// set canvas size based on window dimensions
 	function setCanvasSize()
@@ -143,7 +144,7 @@ window.addEventListener("load", () =>
 			return null;
 	}
 
-	function onDrawingUrlClicked(e)
+	function roomUrlClicked(e)
 	{
 		e.preventDefault();
 
@@ -165,78 +166,68 @@ window.addEventListener("load", () =>
 		e.target.removeChild(textArea);
 	}
 
-	function onCanvasMouseMove(e)
+	function canvasMouseMoved(e)
 	{
 		brushBoundsPreview.style.left = (e.clientX - brushBoundsPreview.offsetWidth / 2) + "px";
 		brushBoundsPreview.style.top = (e.clientY - brushBoundsPreview.offsetHeight / 2) + "px";
 
 		if (isDrawing)
-			paint(getCanvasLocalPos(e));
-	}
-
-	// calculate coordinates inside of the canvas
-	function getCanvasLocalPos(e)
-	{
-		var canvasRect = canvas.getBoundingClientRect();
-		const correctionOffset = -1; // where is this offset coming from?
-
-		return {
-			x: ((e.clientX + correctionOffset) - canvasRect.x) / canvasScale.x,
-			y: ((e.clientY + correctionOffset) - canvasRect.y) / canvasScale.y
-		};
-	}
-
-	// start drawing path
-	// isLocal - if the action is done by the local user
-	// netDrawData - draw data of another user received over the network
-	function startPosition(e, isLocal=true, netDrawData=null)
-	{
-		var pos;
-		if (isLocal)
 		{
-			pos = getCanvasLocalPos(e);
-			socket.emit("drawStart", new NetDrawData(pos.x, pos.y, paintTool));
-		} else
-		{
-			pos = {x: netDrawData.x, y: netDrawData.y};
+			drawingEndPos.x = e.offsetX;
+			drawingEndPos.y = e.offsetY;
+
+			var drawingData = new DrawingData(drawingStartPos, drawingEndPos, paintTool);
+			draw(drawingData);
+			socket.emit("draw", drawingData);
+
+			drawingStartPos.x = e.offsetX;
+			drawingStartPos.y = e.offsetY;
 		}
-
-		if (isLocal)
-			isDrawing = true;
-
-		ctx.beginPath();
-		ctx.moveTo(pos.x, pos.y);
-
-		if (isLocal)
-			paint(pos, isLocal);
-		else
-			paint(pos, isLocal, netDrawData.tool);
 	}
 
-	function endPosition()
+	function canvasMouseDown(e)
+	{
+		isDrawing = true;
+		var posX = e.offsetX;
+		var posY = e.offsetY;
+		drawingStartPos.x = posX;
+		drawingStartPos.y = posY;
+		drawingEndPos.x = posX;
+		drawingEndPos.y = posY;
+
+		var drawingData = new DrawingData(drawingStartPos, drawingEndPos, paintTool);
+		draw(drawingData);
+		socket.emit("draw", drawingData);
+	}
+
+	function canvasMouseUp(e)
 	{
 		isDrawing = false;
 	}
 
-	// isLocal - if the action is done by the local user
-	// _tool - tool info of another user received over the network
-	function paint(pos, isLocal=true, _tool=paintTool)
+	function canvasMouseOver(e)
 	{
-		if (!isDrawing && isLocal)
-			return;
+		brushBoundsPreview.style.visibility = "visible";
+		brushBoundsPreview.style.left = (e.clientX - brushBoundsPreview.offsetWidth / 2) + "px";
+		brushBoundsPreview.style.top = (e.clientY - brushBoundsPreview.offsetHeight / 2) + "px";
+	}
 
-		ctx.lineWidth = _tool.size;
-		ctx.lineCap = _tool.style;
-		ctx.strokeStyle = _tool.color;
-		ctx.shadowBlur = _tool.blur;
-		ctx.shadowColor = _tool.color;
-		ctx.lineTo(pos.x, pos.y);
-		ctx.stroke();
+	function canvasMouseOut(e)
+	{
+		brushBoundsPreview.style.visibility = "hidden";
+	}
+
+	function draw(drawingData)
+	{
+		ctx.lineWidth = drawingData.tool.size;
+		ctx.lineCap = drawingData.tool.style;
+		ctx.strokeStyle = drawingData.tool.color;
+		ctx.shadowBlur = drawingData.tool.blur;
+		ctx.shadowColor = drawingData.tool.color;
 		ctx.beginPath();
-		ctx.moveTo(pos.x, pos.y);
-
-		if (isLocal)
-			socket.emit("draw", new NetDrawData(pos.x, pos.y, paintTool));
+		ctx.moveTo(drawingData.startPos.x, drawingData.startPos.y);
+		ctx.lineTo(drawingData.endPos.x, drawingData.endPos.y);
+		ctx.stroke();
 	}
 
 	// a small element that follows mouse cursor. It visualizes the brush size and shape
@@ -279,7 +270,7 @@ window.addEventListener("load", () =>
 	}
 
 	// download canvas image
-	function onSaveBtnClicked(e)
+	function saveBtnClicked(e)
 	{
 		e.target.href = canvas.toDataURL("image/png");
 	}
@@ -290,11 +281,11 @@ window.addEventListener("load", () =>
 		{
 			socket = io();
 	
-			socket.on("receiveRoomURL", roomUrl =>
+			socket.on("receiveRoomURL", roomUrlString =>
 			{
-				drawingUrl.innerHTML = `${roomUrl} <i class="fas fa-copy url-icon"></i>`;
-				drawingUrl.href = roomUrl;
-				drawingUrl.dataset.clipboard = roomUrl;
+				roomUrl.innerHTML = `${roomUrlString} <i class="fas fa-copy url-icon"></i>`;
+				roomUrl.href = roomUrlString;
+				roomUrl.dataset.clipboard = roomUrlString;
 			});
 	
 			socket.on("userJoin", userName =>
@@ -306,15 +297,10 @@ window.addEventListener("load", () =>
 			{
 				new Notification(`User ${userName} has left`);
 			});
-	
-			socket.on("drawStart", netDrawData =>
-			{
-				startPosition(null, false, netDrawData);
-			});
 			
-			socket.on("draw", netDrawData =>
+			socket.on("draw", drawingData =>
 			{
-				paint({x: netDrawData.x, y: netDrawData.y}, false, netDrawData.tool);
+				draw(drawingData);
 			});
 
 			socket.on("canvasRequest", () =>
@@ -356,28 +342,14 @@ window.addEventListener("load", () =>
 	}
 
 	// window.addEventListener("resize", setCanvasSize);
-	canvas.addEventListener("mousemove", onCanvasMouseMove);
-	canvas.addEventListener("mouseover", (e) =>
-	{
-		brushBoundsPreview.style.visibility = "visible";
-		brushBoundsPreview.style.left = (e.clientX - brushBoundsPreview.offsetWidth / 2) + "px"
-		brushBoundsPreview.style.top = (e.clientY - brushBoundsPreview.offsetHeight / 2) + "px"
-	});
-
-	canvas.addEventListener("mouseout", (e) =>
-	{
-		brushBoundsPreview.style.visibility = "hidden";
-	});
-
-	canvas.addEventListener("mousedown", startPosition);
-	canvas.addEventListener("mouseup", endPosition);
-
-	window.addEventListener("mouseup", e =>
-	{
-		isDrawing = false;
-	});
-	drawingUrl.addEventListener("click", onDrawingUrlClicked);
-	saveBtn.addEventListener("click", onSaveBtnClicked);
+	canvas.addEventListener("mousemove", canvasMouseMoved);
+	canvas.addEventListener("mouseover", canvasMouseOver);
+	canvas.addEventListener("mouseout", canvasMouseOut);
+	canvas.addEventListener("mousedown", canvasMouseDown);
+	canvas.addEventListener("mouseup", canvasMouseUp);
+	window.addEventListener("mouseup", canvasMouseUp);
+	roomUrl.addEventListener("click", roomUrlClicked);
+	saveBtn.addEventListener("click", saveBtnClicked);
 	colorPicker.addEventListener("change", paintColorSwitch);
 	brushSizeBtn.addEventListener("click", brushSizeBtnClicked);
 	sizeSlider.addEventListener("input", brushSizeChange);

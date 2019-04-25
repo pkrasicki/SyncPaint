@@ -92,11 +92,6 @@ io.on("connection", socket =>
 		io.to(io.sockets.adapter.rooms[roomName].adminId).emit("canvasRequest");
 	}
 
-	socket.on("drawStart", data =>
-	{
-		socket.broadcast.to(roomName).emit("drawStart", data);
-	});
-
 	socket.on("draw", data =>
 	{
 		socket.broadcast.to(roomName).emit("draw", data);
