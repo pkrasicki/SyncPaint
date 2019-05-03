@@ -42,7 +42,7 @@ module.exports =
 			},
 			{
 				test: /\.(svg|ttf|eot|woff|woff2)$/,
-				use: 
+				use:
 				{
 					loader: "file-loader",
 					options:
@@ -53,12 +53,23 @@ module.exports =
 			},
 			{
 				test: /\.(png|jpg)$/,
-				use: 
+				use:
 				{
 					loader: "file-loader",
 					options:
 					{
 						outputPath: "img"
+					}
+				}
+			},
+			{
+				test: /favicon\.ico$/,
+				use:
+				{
+					loader: "file-loader",
+					options:
+					{
+						name: "[name].[ext]"
 					}
 				}
 			}

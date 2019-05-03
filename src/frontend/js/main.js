@@ -2,6 +2,7 @@ import "../scss/main.scss";
 import "../scss/draw.scss";
 import "lato-font";
 import "../../../node_modules/@fortawesome/fontawesome-free/css/all.css";
+import "../favicon.ico";
 import {Brush} from "./tools/brush";
 import {Pencil} from "./tools/pencil";
 import {PaintRoller} from "./tools/paint-roller";
