@@ -17,7 +17,7 @@
 						<div class="brush-preview">
 							<input type="color" id="color-picker"/>
 						</div>
-						<a href="#" class="btn brush-size">
+						<a href="#" class="btn-nav brush-size">
 							<span class="size-value">20px</span>
 							<div class="brush-size-menu">
 								<input class="size-slider" type="range" min="1" max="200"/>
@@ -27,7 +27,7 @@
 				</li>
 				<li><a href="#" class="draw-btn-alt" id="room-url" title="copy to clickboard" data-clipboard=""></a></li>
 				<li class="options-container">
-					<div><a href="#" class="btn" title="save image to disk" id="save" download="canvas.png"><i class="fas fa-save"></i> Save</i></a></div>
+					<div><a href="#" class="btn-nav" title="save image to disk" id="save" download="canvas.png"><i class="fas fa-save"></i> Save</i></a></div>
 					<div><a href="#" class="settings-btn" title="not available yet"><i class="fas fa-cog"></i> Settings</i></a></div>
 				</li>
 			</ul>
@@ -36,7 +36,23 @@
 
 	<main>
 		<aside class="toolbar"></aside>
+		<canvas id="bgCanvas"></canvas>
 		<canvas id="drawArea"></canvas>
+
+		<div class="background-modal">
+			<h2>Add Background Image</h2>
+			<div class="drop-area">
+				<p class="hide-on-drop paragraph">drop image here</p>
+				<i class="fas fa-image fa-8x hide-on-drop img-icon"></i>
+			</div>
+
+			<!-- <label class="hide-on-drop">or provide a URL:</label> -->
+			<!-- <input type="text" class="hide-on-drop"/> -->
+			<br/>
+
+			<button id="add-image" class="btn">Add Image</button>
+			<button id="hide-background-modal" class="btn-warning">Cancel</button>
+		</div>
 	</main>
 </body>
 </html>

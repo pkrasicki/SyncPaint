@@ -49,8 +49,7 @@ class Toolbar
 				{
 					type: "BackgroundImage",
 					tooltip: "add background image",
-					icon: "fa-image",
-					disabled: true
+					icon: "fa-image"
 				},
 				{
 					type: "separator",
@@ -105,7 +104,7 @@ class Toolbar
 			if (item.type == "separator")
 				icon.classList.add("separator");
 			else
-				icon.classList.add("btn");
+				icon.classList.add("btn-tool");
 
 			if (item.disabled)
 			{
@@ -113,7 +112,7 @@ class Toolbar
 				icon.title = "coming soon";
 			}
 
-			if (!item.disabled)
+			if (!item.disabled && item.type != "separator")
 				icon.addEventListener("click", clickCallback);
 
 			icons.push(icon);
@@ -132,7 +131,7 @@ class Toolbar
 			icon.classList.add(item.icon);
 			icon.title = item.tooltip;
 			icon.dataset.color = item.color;
-			icon.classList.add("btn");
+			icon.classList.add("btn-tool");
 			icon.style.backgroundColor = item.color;
 			icon.addEventListener("click", clickCallback);
 			

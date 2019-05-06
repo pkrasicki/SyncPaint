@@ -13,10 +13,12 @@ import {DrawingData} from "./drawing-data/drawing-data";
 window.addEventListener("load", () =>
 {
 	const canvas = document.querySelector("#drawArea");
+	const bgCanvas = document.querySelector("#bgCanvas");
 	if (!canvas)
 		return;
 
 	const ctx = canvas.getContext("2d");
+	const bgCtx = bgCanvas.getContext("2d");
 	const toolbarElement = document.querySelector(".toolbar");
 	const roomUrl = document.querySelector("#room-url");
 	const saveBtn = document.querySelector("#save");
@@ -25,6 +27,8 @@ window.addEventListener("load", () =>
 	const brushSizeMenu = document.querySelector(".brush-size-menu");
 	const sizeSlider = document.querySelector(".size-slider");
 	const sizeValueSpan = document.querySelector(".size-value");
+	const backgroundSelectionModal = document.querySelector(".background-modal");
+	const backgroundDropArea = document.querySelector(".drop-area");
 
 	const canvasWidth = 0.9;
 	const canvasHeight = 0.9;
@@ -37,18 +41,24 @@ window.addEventListener("load", () =>
 	var brushBoundsPreview;
 	var drawingStartPos = {x: 0, y: 0};
 	var drawingEndPos = {x: 0, y: 0};
+	var isSavingCanvas = false;
 
 	// set canvas size based on window dimensions
 	function setCanvasSize()
 	{
 		const canvasData = canvas.toDataURL("image/png");
+		const bgData = bgCanvas.toDataURL("image/png");
 		canvas.height = window.innerHeight * canvasHeight;
 		canvas.width = window.innerWidth * canvasWidth;
-		loadCanvasData(canvasData);
+
+		bgCanvas.height = window.innerHeight * canvasHeight;
+		bgCanvas.width = window.innerWidth * canvasWidth;
+		loadCanvasData(ctx, canvasData);
+		loadCanvasData(bgCtx, bgData);
 	}
 
 	// load image from canvasURL
-	function loadCanvasData(canvasData)
+	function loadCanvasData(ctx, canvasData)
 	{
 		var canvasImage = new Image();
 		canvasImage.onload = e =>
@@ -63,6 +73,11 @@ window.addEventListener("load", () =>
 	function paintToolSwitch(e)
 	{
 		const type = e.target.dataset.tooltype;
+
+		// background image is not a tool
+		if (type == "BackgroundImage")
+			return;
+
 		var previouslySelected = document.querySelector(".selected");
 
 		if (previouslySelected)
@@ -70,9 +85,7 @@ window.addEventListener("load", () =>
 
 		e.target.classList.add("selected");
 
-		const size = paintTool.size;
-		const color = paintTool.color;
-		paintTool = getTool(type, size, color);
+		paintTool = getTool(type, paintTool.size, paintTool.color);
 		updateBrushPreview();
 	}
 
@@ -115,6 +128,11 @@ window.addEventListener("load", () =>
 			{
 				icon.classList.add("selected")
 				isDefaultToolFound = true;
+			}
+
+			if (icon.dataset.tooltype == "BackgroundImage")
+			{
+				icon.addEventListener("click", showBackgroundSelectionModal);
 			}
 
 			ul.appendChild(icon);
@@ -236,12 +254,7 @@ window.addEventListener("load", () =>
 	{
 		brushBoundsPreview = document.createElement("div");
 		brushBoundsPreview.classList.add("brush-preview");
-		brushBoundsPreview.style.position = "absolute";
-		brushBoundsPreview.style.cursor = "crosshair";
-		brushBoundsPreview.style.pointerEvents = "none";
-		brushBoundsPreview.style.visibility = "hidden";
-		brushBoundsPreview.style.borderStyle = "dotted";
-		brushBoundsPreview.style.borderWidth = "2px";
+		brushBoundsPreview.classList.add("brush-preview-follower");
 		brushBoundsPreview.dataset.brushBoundsPreview = true;
 
 		document.body.appendChild(brushBoundsPreview);
@@ -251,19 +264,24 @@ window.addEventListener("load", () =>
 	
 	function updateBrushPreview()
 	{
+		const size = paintTool.size;
+		const blur = paintTool.blur;
+		const color = paintTool.color;
+		const style = paintTool.style;
+		
 		document.querySelectorAll(".brush-preview").forEach(item =>
 		{
 			if(item.dataset.brushBoundsPreview)
 			{
-				item.style.width = (paintTool.size + paintTool.blur / 2) + "px";
-				item.style.height = (paintTool.size + paintTool.blur / 2) + "px";
+				item.style.width = (size + blur / 2) + "px";
+				item.style.height = (size + blur / 2) + "px";
 			} else
 			{
-				item.style.background = paintTool.color;
-				item.style.boxShadow = `0 0 ${paintTool.blur}px ${paintTool.color}`;
+				item.style.background = color;
+				item.style.boxShadow = `0 0 ${blur}px ${color}`;
 			}
 	
-			if (paintTool.style == "round")
+			if (style == "round")
 				item.style.borderRadius = "50%";
 			else
 				item.style.borderRadius = "0";
@@ -273,7 +291,37 @@ window.addEventListener("load", () =>
 	// download canvas image
 	function saveBtnClicked(e)
 	{
-		e.target.href = canvas.toDataURL("image/png");
+		if (isSavingCanvas)
+		{
+			isSavingCanvas = false;
+			return;
+		}
+
+		e.preventDefault();
+
+		var backgroundImage = new Image();
+		var image = new Image();
+
+		backgroundImage.onload = () =>
+		{
+			image.src = canvas.toDataURL("image/png");
+		};
+
+		image.onload = () =>
+		{
+			var tempCanvas = document.createElement("canvas");
+			var tempCtx = tempCanvas.getContext("2d");
+			tempCanvas.width = canvas.width;
+			tempCanvas.height = canvas.height;
+			tempCtx.drawImage(backgroundImage, 0, 0);
+			tempCtx.drawImage(image, 0, 0);
+
+			e.target.href = tempCanvas.toDataURL("image/png");
+			isSavingCanvas = true;
+			e.target.click();
+		};
+
+		backgroundImage.src = bgCanvas.toDataURL("image/png");
 	}
 
 	function initializeSocket()
@@ -308,10 +356,20 @@ window.addEventListener("load", () =>
 			{
 				socket.emit("receiveCanvas", canvas.toDataURL("image/png"));
 			});
+
+			socket.on("backgroundCanvasRequest", () =>
+			{
+				socket.emit("receiveBackgroundCanvas", bgCanvas.toDataURL("image/png"));
+			});
 			
 			socket.on("receiveCanvas", canvasData =>
 			{
-				loadCanvasData(canvasData);
+				loadCanvasData(ctx, canvasData);
+			});
+
+			socket.on("receiveBackgroundCanvas", bgCanvasData =>
+			{
+				loadCanvasData(bgCtx, bgCanvasData);
 			});
 
 		} catch (error)
@@ -342,7 +400,83 @@ window.addEventListener("load", () =>
 		updateBrushPreview();
 	}
 
-	// window.addEventListener("resize", setCanvasSize);
+	function showBackgroundSelectionModal(e)
+	{
+		backgroundSelectionModal.style.left = (window.innerWidth / 4) + "px";
+		backgroundSelectionModal.style.top = (window.innerHeight / 4) + "px";
+		backgroundSelectionModal.style.display = "block";
+
+		document.querySelectorAll(".hide-on-drop").forEach(item =>
+		{
+			item.style.display = "initial";
+		});
+		backgroundDropArea.style.borderWidth = "1px";
+		document.querySelector(".drop-area p").style.display = "block";
+
+		var imagePreview = document.querySelector("#bg-image-preview");
+		if (imagePreview)
+			backgroundDropArea.removeChild(imagePreview);
+	}
+
+	function hideBackgroundSelectionModal()
+	{
+		backgroundSelectionModal.style.display = "none";
+	}
+
+	function addCanvasBackgroundImage()
+	{
+		hideBackgroundSelectionModal();
+
+		var imagePreview = document.querySelector("#bg-image-preview");
+		if (!imagePreview)
+			return;
+		
+		loadCanvasData(bgCtx, imagePreview.src);
+		socket.emit("receiveBackgroundCanvasAll", imagePreview.src);
+	}
+
+	function imageDraggedOver(e)
+	{
+		e.preventDefault();
+		e.dataTransfer.dropEffect = 'copy';
+	}
+
+	// image dropped into add image modal
+	function imageDropped(e)
+	{
+		e.preventDefault();
+		var files = e.dataTransfer.files;
+		for (var i = 0; i < files.length; i++)
+		{
+			var file = files[i];
+			if (file.type.match(/image*/))
+			{
+				var reader = new FileReader();
+				reader.onload = (readerEv) =>
+				{
+					var imagePreview = document.querySelector("#bg-image-preview");
+					if (!imagePreview)
+					{
+						imagePreview = document.createElement("img");
+						imagePreview.id = "bg-image-preview";
+						imagePreview.style.width = "100%";
+					}
+
+					imagePreview.src = readerEv.target.result;
+					backgroundDropArea.style.borderWidth = "0px";
+					backgroundDropArea.appendChild(imagePreview);
+					document.querySelectorAll(".hide-on-drop").forEach(item =>
+					{
+						item.style.display = "none";
+					});
+				};
+
+				reader.readAsDataURL(file);
+			}
+		}
+	}
+
+	window.addEventListener("resize", setCanvasSize);
 	canvas.addEventListener("mousemove", canvasMouseMoved);
 	canvas.addEventListener("mouseover", canvasMouseOver);
 	canvas.addEventListener("mouseout", canvasMouseOut);
@@ -354,6 +488,10 @@ window.addEventListener("load", () =>
 	colorPicker.addEventListener("change", paintColorSwitch);
 	brushSizeBtn.addEventListener("click", brushSizeBtnClicked);
 	sizeSlider.addEventListener("input", brushSizeChange);
+	document.getElementById("hide-background-modal").addEventListener("click", hideBackgroundSelectionModal);
+	document.getElementById("add-image").addEventListener("click", addCanvasBackgroundImage);
+	backgroundDropArea.addEventListener("dragover", imageDraggedOver);
+	backgroundDropArea.addEventListener("drop", imageDropped);
 
 	initializeSocket();
 	setCanvasSize();

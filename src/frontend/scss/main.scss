@@ -1,4 +1,4 @@
-@import "variables";
+@import "global";
 
 html
 {
@@ -29,13 +29,9 @@ a
 
 .draw-btn
 {
-	background-color: $primaryColorLight;
-	color: white;
-	border: none;
-	border-radius: 5px;
+	@extend .btn;
 	padding: 10px;
 	font-size: $btnFontSize;
-	border: solid 1px $primaryColorDark;
 	
 	&:hover
 	{

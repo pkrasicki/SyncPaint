@@ -87,9 +87,15 @@ io.on("connection", socket =>
 		// aks for current canvas
 		if(!io.sockets.adapter.rooms[roomName].requesterIds)
 			io.sockets.adapter.rooms[roomName].requesterIds = [];
+	
+		if(!io.sockets.adapter.rooms[roomName].bgRequesterIds)
+			io.sockets.adapter.rooms[roomName].bgRequesterIds = [];
 		
 		io.sockets.adapter.rooms[roomName].requesterIds.push(socket.id);
 		io.to(io.sockets.adapter.rooms[roomName].adminId).emit("canvasRequest");
+
+		io.sockets.adapter.rooms[roomName].bgRequesterIds.push(socket.id);
+		io.to(io.sockets.adapter.rooms[roomName].adminId).emit("backgroundCanvasRequest");
 	}
 
 	socket.on("draw", data =>
@@ -110,12 +116,31 @@ io.on("connection", socket =>
 		}
 	});
 
+	socket.on("receiveBackgroundCanvas", canvasData =>
+	{
+		if(io.sockets.adapter.rooms[roomName].bgRequesterIds
+			&& io.sockets.adapter.rooms[roomName].bgRequesterIds.length > 0)
+		{
+			io.sockets.adapter.rooms[roomName].bgRequesterIds.forEach((userId, index, arr) =>
+			{
+				io.to(userId).emit("receiveBackgroundCanvas", canvasData);
+				arr.splice(index, 1);
+			});
+		}
+	});
+
+	socket.on("receiveBackgroundCanvasAll", canvasData =>
+	{
+		socket.broadcast.to(roomName).emit("receiveBackgroundCanvas", canvasData);
+	});
+
 	socket.on("disconnect", () =>
 	{
 		io.sockets.in(roomName).emit("userLeave", userName);
 		var index = userNames.indexOf(userName);
 		userNames.splice(index, 1);
 
+		// remove pending canvas request
 		if(io.sockets.adapter.rooms[roomName] && io.sockets.adapter.rooms[roomName].requesterIds)
 		{
 			var index = io.sockets.adapter.rooms[roomName].requesterIds.indexOf(socket.id);
@@ -124,10 +149,21 @@ io.on("connection", socket =>
 				io.sockets.adapter.rooms[roomName].requesterIds.splice(index, 1);
 			}
 		}
+
+		// remove pending background canvas request
+		if(io.sockets.adapter.rooms[roomName] && io.sockets.adapter.rooms[roomName].bgRequesterIds)
+		{
+			var index = io.sockets.adapter.rooms[roomName].bgRequesterIds.indexOf(socket.id);
+			if (index > -1)
+			{
+				io.sockets.adapter.rooms[roomName].bgRequesterIds.splice(index, 1);
+			}
+		}
 		
 		if (io.sockets.adapter.rooms[roomName] && io.sockets.adapter.rooms[roomName].length > 0)
 		{
-			if(io.sockets.adapter.rooms[roomName].adminId
+			// if user is admin
+			if (io.sockets.adapter.rooms[roomName].adminId
 				&& io.sockets.adapter.rooms[roomName].adminId == socket.id)
 			{
 				// make someone else admin

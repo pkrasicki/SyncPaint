@@ -1,4 +1,4 @@
-@import "variables";
+@import "global";
 
 textarea.clibpoard
 {
@@ -22,7 +22,7 @@ nav.menu-draw
 		grid-template-columns: repeat(3, 1fr);
 	}
 
-	.btn
+	.btn-nav
 	{
 		color: $light;
 		&:hover
@@ -125,6 +125,18 @@ canvas
 	justify-self: center;
 	align-self: center;
 	grid-column: 2;
+	border: solid 1px black;
+}
+
+#bgCanvas
+{
+	position: absolute;
+	left: -1px;
+}
+
+#drawArea
+{
+	z-index: 1;
 }
 
 .toolbar
@@ -148,7 +160,7 @@ canvas
 		margin-bottom: 10px;
 	}
 
-	.btn
+	.btn-tool
 	{
 		display: block;
 		color: $light;
@@ -254,6 +266,70 @@ canvas
 	{
 		margin-top: 5px;
 	}
+}
+
+.modal
+{
+	display: none;
+	position: absolute;
+	width: 50%;
+	height: 50%;
+	border: solid 1px "gray";
+	border-radius: 5px;
+	background: rgb(219, 219, 219);
+	box-shadow: 0 0 5px black;
+	z-index: 2;
+	text-align: center;
+	color: $dark;
+	min-height: 420px;
+
+	input[type=text]
+	{
+		margin-left: 20px;
+		margin-bottom: 30px;
+		width: 40%;
+	}
+
+	p
+	{
+		margin-bottom: 0px;
+	}
+
+	button
+	{
+		margin-right: 10px;
+	}
+
+	.drop-area
+	{
+		margin-bottom: 20px;
+	}
+}
+
+.background-modal
+{
+	@extend .modal;
+}
+
+.drop-area
+{
+	border: dashed 1px $dark;
+	width: 60%;
+	max-height: 60%;
+	margin: 0 auto;
+	color: lighten($dark, 35);
+	overflow: hidden;
+}
+
+.brush-preview-follower
+{
+	position: absolute;
+	pointer-events: none;
+	cursor: crosshair;
+	visibility: hidden;
+	border-style: dotted;
+	border-width: 2px;
+	z-index: 1;
 }
 
 @keyframes notif
