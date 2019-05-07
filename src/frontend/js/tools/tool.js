@@ -2,12 +2,13 @@ export {Tool};
 
 class Tool
 {
-	constructor(style, size, color, blur=3)
+	constructor(style, size, color, blur=3, operation="source-over")
 	{
 		this.style = style;
 		this.size = size;
 		this.color = color;
 		this.blur = blur;
+		this.operation = operation;
 	}
 
 	getSize()

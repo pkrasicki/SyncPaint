@@ -31,8 +31,7 @@ class Toolbar
 				{
 					type: "Eraser",
 					tooltip: "eraser",
-					icon: "fa-eraser",
-					disabled: true
+					icon: "fa-eraser"
 				},
 				{
 					type: "Move",

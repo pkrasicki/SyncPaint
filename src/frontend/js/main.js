@@ -6,6 +6,7 @@ import "../favicon.ico";
 import {Brush} from "./tools/brush";
 import {Pencil} from "./tools/pencil";
 import {PaintRoller} from "./tools/paint-roller";
+import {Eraser} from "./tools/eraser";
 import {Toolbar} from "./toolbar/toolbar";
 import {Notification} from "./notification/notification";
 import {DrawingData} from "./drawing-data/drawing-data";
@@ -159,6 +160,8 @@ window.addEventListener("load", () =>
 			return new PaintRoller(size, color);
 		else if (toolName == "Pencil")
 			return new Pencil(size, color);
+		else if (toolName == "Eraser")
+			return new Eraser(size, color);
 		else
 			return null;
 	}
@@ -238,6 +241,7 @@ window.addEventListener("load", () =>
 
 	function draw(drawingData)
 	{
+		ctx.globalCompositeOperation = drawingData.tool.operation;
 		ctx.lineWidth = drawingData.tool.size;
 		ctx.lineCap = drawingData.tool.style;
 		ctx.strokeStyle = drawingData.tool.color;
