@@ -7,6 +7,7 @@ import {Brush} from "./tools/brush";
 import {Pencil} from "./tools/pencil";
 import {PaintRoller} from "./tools/paint-roller";
 import {Eraser} from "./tools/eraser";
+import {Text} from "./tools/text";
 import {Notification} from "./notification/notification";
 import {NotificationSystem} from "./notification/notification-system";
 import {DrawingData} from "./drawing-data/drawing-data";
@@ -174,6 +175,8 @@ function getTool(toolName, size, color)
 		return new Pencil(size, color);
 	else if (toolName == "Eraser")
 		return new Eraser(size, color);
+	else if (toolName == "Text")
+		return new Text(size, color);
 	else
 	{
 		console.error("wrong tool name:", toolName);
@@ -224,7 +227,6 @@ function canvasMouseMoved(e)
 
 function canvasMouseDown(e)
 {
-	isDrawing = true;
 	var posX = e.offsetX;
 	var posY = e.offsetY;
 	drawingStartPos.x = posX;
@@ -232,9 +234,13 @@ function canvasMouseDown(e)
 	drawingEndPos.x = posX;
 	drawingEndPos.y = posY;
 
-	var drawingData = new DrawingData(drawingStartPos, drawingEndPos, paintTool);
-	draw(drawingData);
-	socket.emit("draw", drawingData);
+	if (paintTool instanceof Text == false)
+	{
+		isDrawing = true;
+		var drawingData = new DrawingData(drawingStartPos, drawingEndPos, paintTool);
+		draw(drawingData);
+		socket.emit("draw", drawingData);
+	}
 }
 
 function canvasMouseUp()
@@ -263,10 +269,19 @@ function draw(drawingData)
 	ctx.strokeStyle = drawingData.tool.color;
 	ctx.shadowBlur = drawingData.tool.blur;
 	ctx.shadowColor = drawingData.tool.color;
-	ctx.beginPath();
-	ctx.moveTo(drawingData.startPos.x, drawingData.startPos.y);
-	ctx.lineTo(drawingData.endPos.x, drawingData.endPos.y);
-	ctx.stroke();
+
+	if (drawingData.text != "")
+	{
+		ctx.font = `${drawingData.tool.size}px sans-serif`;
+		ctx.fillStyle = drawingData.tool.color;
+		ctx.fillText(drawingData.text, drawingData.startPos.x, drawingData.startPos.y);
+	} else
+	{
+		ctx.beginPath();
+		ctx.moveTo(drawingData.startPos.x, drawingData.startPos.y);
+		ctx.lineTo(drawingData.endPos.x, drawingData.endPos.y);
+		ctx.stroke();
+	}
 }
 
 // a small element that follows mouse cursor. It visualizes the brush size and shape
@@ -306,6 +321,16 @@ function updateBrushPreview()
 		else
 			item.style.borderRadius = "0";
 	});
+
+	if (paintTool instanceof Text)
+	{
+		brushBoundsPreview.style.display = "none";
+		canvas.style.cursor = "text";
+	} else
+	{
+		brushBoundsPreview.style.display = "initial";
+		canvas.style.cursor = "default";
+	}
 }
 
 // download canvas image
@@ -619,6 +644,27 @@ function imageFileInputChanged(e)
 	loadBackgroundImage(e.currentTarget.files[0]);
 }
 
+function keyPressed(e)
+{
+	if (paintTool instanceof Text)
+	{
+		var key = e.which;
+
+		if (key == 13)
+		{
+			drawingStartPos.x = drawingEndPos.x;
+			drawingStartPos.y += paintTool.size;
+		} else
+		{
+			var textString = String.fromCharCode(key);
+			var drawingData = new DrawingData(drawingStartPos, drawingEndPos, paintTool, textString);
+			draw(drawingData);
+			socket.emit("draw", drawingData);
+			drawingStartPos.x += ctx.measureText(textString).width;
+		}
+	}
+}
+
 window.addEventListener("load", () =>
 {
 	canvas = document.querySelector("#drawArea");
@@ -642,12 +688,14 @@ window.addEventListener("load", () =>
 	const imageFileInput = document.querySelector("#image-file-input");
 
 	window.addEventListener("resize", windowResized);
+	window.addEventListener("mouseup", canvasMouseUp);
+	window.addEventListener("mousemove", windowMouseMoved);
+	window.addEventListener("keypress", keyPressed);
 	canvas.addEventListener("mousemove", canvasMouseMoved);
 	canvas.addEventListener("mouseover", canvasMouseOver);
 	canvas.addEventListener("mouseout", canvasMouseOut);
 	canvas.addEventListener("mousedown", canvasMouseDown);
 	canvas.addEventListener("mouseup", canvasMouseUp);
-	window.addEventListener("mouseup", canvasMouseUp);
 	roomUrlLink.addEventListener("click", roomUrlClicked);
 	saveBtn.addEventListener("click", saveBtnClicked);
 	colorPicker.addEventListener("change", paintColorChanged);
@@ -658,7 +706,6 @@ window.addEventListener("load", () =>
 	backgroundDropArea.addEventListener("drop", imageDropped);
 	settingsBtn.addEventListener("click", settingsBtnClicked);
 	nameInput.addEventListener("change", userNameChanged);
-	window.addEventListener("mousemove", windowMouseMoved);
 	imageFileInput.addEventListener("change", imageFileInputChanged);
 
 	initializeSocket();
