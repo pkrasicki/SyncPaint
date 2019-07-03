@@ -91,6 +91,19 @@ nav.menu-draw
 		cursor: pointer;
 		margin-left: 20px;
 	}
+
+	.up-arrow
+	{
+		position: relative;
+		bottom: 6px;
+	}
+
+	.down-arrow
+	{
+		position: relative;
+		top: 6px;
+		left: -8px;
+	}
 }
 
 #room-url
@@ -260,7 +273,7 @@ canvas
 	visibility: hidden;
 	margin: 0;
 	padding: 0;
-	z-index: 1;
+	z-index: 2;
 
 	.size-slider
 	{

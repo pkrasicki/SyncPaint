@@ -34,12 +34,6 @@ class Toolbar
 					icon: "fa-eraser"
 				},
 				{
-					type: "Move",
-					tooltip: "move",
-					icon: "fa-mouse-pointer",
-					disabled: true
-				},
-				{
 					type: "Text",
 					tooltip: "add text",
 					icon: "fa-font",
