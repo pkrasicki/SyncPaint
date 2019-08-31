@@ -1,6 +1,6 @@
 export {DrawingData};
 
-// drawing data sent over the network
+// drawing data sent through the websocket
 class DrawingData
 {
 	constructor(startPos, endPos, tool)

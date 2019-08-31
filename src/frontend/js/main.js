@@ -18,7 +18,8 @@ const defaultBrushSize = 20;
 const defaultPaintColor = "#000000";
 const defaultPaintTool = "Brush";
 const notificationSystem = new NotificationSystem();
-var canvas, socket, ctx, brushBoundsPreview, bgCtx, toolbarElement, colorPicker;
+var canvas, socket, ctx, brushBoundsPreview, bgCtx, toolbarElement, colorPicker,
+	backgroundSelectionModal, sizeValueSpan, brushSizeMenu, backgroundDropArea;
 var isDrawing = false;
 var paintTool = getTool(defaultPaintTool, defaultBrushSize, defaultPaintColor);
 var drawingStartPos = {x: 0, y: 0};
@@ -309,6 +310,7 @@ function saveBtnClicked(e)
 	backgroundImage.src = bgCanvas.toDataURL("image/png");
 }
 
+// connect to websocket
 function initializeSocket(roomUrl)
 {
 	try
@@ -475,11 +477,11 @@ window.addEventListener("load", () =>
 	const saveBtn = document.querySelector("#save");
 	colorPicker = document.querySelector("#color-picker");
 	const brushSizeBtn = document.querySelector(".brush-size");
-	const brushSizeMenu = document.querySelector(".brush-size-menu");
+	brushSizeMenu = document.querySelector(".brush-size-menu");
 	const sizeSlider = document.querySelector(".size-slider");
-	const sizeValueSpan = document.querySelector(".size-value");
-	const backgroundSelectionModal = document.querySelector(".background-modal");
-	const backgroundDropArea = document.querySelector(".drop-area");
+	sizeValueSpan = document.querySelector(".size-value");
+	backgroundSelectionModal = document.querySelector(".background-modal");
+	backgroundDropArea = document.querySelector(".drop-area");
 
 	window.addEventListener("resize", setCanvasSize);
 	canvas.addEventListener("mousemove", canvasMouseMoved);

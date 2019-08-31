@@ -17,6 +17,7 @@ module.exports =
 	{
 		contentBase: "./dist"
 	},
+	devtool: "inline-source-map",
 	optimization:
 	{
 		minimizer:
