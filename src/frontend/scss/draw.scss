@@ -123,9 +123,8 @@ nav.menu-draw
 main
 {
 	display: grid;
-	grid-gap: 2.5%;
 	grid-template-columns: 5% 90%;
-	position:absolute;
+	position: absolute;
 	top: 39px;
 	bottom:0;
 	left:0;
@@ -139,12 +138,7 @@ canvas
 	align-self: center;
 	grid-column: 2;
 	border: solid 1px black;
-}
-
-#bgCanvas
-{
 	position: absolute;
-	left: -1px;
 }
 
 #drawArea
