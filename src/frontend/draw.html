@@ -2,33 +2,38 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8"/>
-	<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-	<meta name="description" content="synchronized group drawing"/>
 	<title>SyncPaint - Drawing Room</title>
 	<script src="/socket.io/socket.io.js"></script>
 </head>
-<body>
+<body class="draw">
 	<header>
 		<nav class="menu menu-draw">
 			<ul>
 				<li class="brush-properties-container">
-					<a href="index.html" class="logo-link"><div class="logo"></div> SyncPaint</a>
+					<a href="index.html" class="logo-link responsive"><div class="logo"></div> <span>SyncPaint</span></a>
 					<div class="brush-properties">
 						<div class="brush-preview">
 							<input type="color" id="color-picker" title="change brush color"/>
 						</div>
 						<a href="#" class="btn-nav brush-size">
-							<span class="size-value" title="change brush size">20px</span> <span class="up-arrow">▵</span><span class="down-arrow">▿</span>
+							<span class="size-value" title="change brush size">20px</span> <span>&#8597;</span>
 							<div class="brush-size-menu">
 								<input class="size-slider" type="range" min="1" max="200"/>
 							</div>
 						</a>
 					</div>
 				</li>
-				<li><a href="#" class="draw-btn-alt" id="room-url" title="copy link to clickboard" data-clipboard=""></a></li>
+				<li class="room">
+					<a href="#" id="room-url" title="copy link to clickboard" data-clipboard="">
+						<span class="url-container">
+							<span>connecting...</span>
+						</span>
+						<i class="fas fa-copy url-icon"></i>
+					</a>
+				</li>
 				<li class="options-container">
-					<div><a href="#" class="btn-nav" title="save image to disk" id="save" download="canvas.png"><i class="fas fa-save"></i> Save</i></a></div>
-					<div><a href="#" class="settings-btn" title="not available yet"><i class="fas fa-cog"></i> Settings</i></a></div>
+					<div><a href="#" class="btn-nav" title="save image to disk" id="save" download="canvas.png"><i class="fas fa-save"></i> <span class="responsive-icon-text">Save</span></a></div>
+					<div><a href="#" class="settings-btn" title="not available yet"><i class="fas fa-cog"></i> <span class="responsive-icon-text">Settings</span></a></div>
 				</li>
 			</ul>
 		</nav>

@@ -44,11 +44,7 @@ function generateUniqueUserName()
 
 function getRoomNameFromUrl(url)
 {
-	var replaceRegex = /http(s):\/\/(www\.)localhost:3000/;
-	var name = url.replace(replaceRegex, "");
-	name = name.replace(/\/$/, "");
-	var splitArray = name.split("/");
-
+	var splitArray = url.split("/");
 	return splitArray[splitArray.length - 1];
 }
 
@@ -71,9 +67,9 @@ io.on("connection", socket =>
 {
 	const roomName = getRoomNameFromUrl(socket.handshake.headers.referer);
 	var userName = generateUniqueUserName();
-	
+
 	socket.join(roomName);
-	socket.emit("receiveRoomURL", socket.handshake.headers.referer)
+	socket.emit("receiveRoomURL", socket.handshake.headers.referer, roomName)
 	socket.broadcast.to(roomName).emit("userJoin", userName);
 	userNames.push(userName);
 
@@ -84,7 +80,7 @@ io.on("connection", socket =>
 		io.sockets.adapter.rooms[roomName].adminId = socket.id;
 	} else
 	{
-		// aks for current canvas
+		// ask for current canvas
 		if(!io.sockets.adapter.rooms[roomName].requesterIds)
 			io.sockets.adapter.rooms[roomName].requesterIds = [];
 	

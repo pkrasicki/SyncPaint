@@ -1,5 +1,10 @@
 @import "global";
 
+body.draw
+{
+	overflow-y: hidden;
+}
+
 textarea.clibpoard
 {
 	position: fixed;
@@ -15,11 +20,17 @@ textarea.clibpoard
 }
 
 nav.menu-draw
-{	
+{
 	ul
 	{
-		display: grid; 
-		grid-template-columns: repeat(3, 1fr);
+		display: flex;
+		flex-direction: row;
+		justify-content: space-evenly;
+	}
+
+	ul > li
+	{
+		flex: 1;
 	}
 
 	.btn-nav
@@ -34,24 +45,29 @@ nav.menu-draw
 
 .options-container
 {
-	display: grid;
-	grid-template-columns: repeat(2, 1fr);
-	
+	display: flex;
+	flex-direction: row;
+	justify-content: space-evenly;
+
 	.settings-btn
 	{
 		color: $disabledColor;
-		
+
 		&:hover
 		{
 			color: $disabledColorHover;
 		}
+	}
+
+	& > *
+	{
+		flex: 1;
 	}
 }
 
 .brush-properties-container
 {
 	@extend .options-container;
-	grid-template-columns: 1fr 1fr;
 
 	.brush-properties
 	{
@@ -91,28 +107,39 @@ nav.menu-draw
 		cursor: pointer;
 		margin-left: 20px;
 	}
+}
 
-	.up-arrow
-	{
-		position: relative;
-		bottom: 6px;
-	}
-
-	.down-arrow
-	{
-		position: relative;
-		top: 6px;
-		left: -8px;
-	}
+.room
+{
+	min-width: 0px;
 }
 
 #room-url
 {
-	border: solid 1px white;
-	padding-left: 10px;
-	padding-right: 10px;
-	grid-column: 2 / 5;
+	@extend .draw-btn-alt;
+	max-width: 100%;
 	white-space: nowrap;
+	position: relative;
+	top: -5px;
+	overflow: hidden;
+}
+
+.url-container
+{
+	display: inline-block;
+	max-width: 90%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	margin: 0;
+	padding: 0;
+	position: relative;
+	top: 3px;
+}
+
+.url-container span
+{
+	margin: 0;
+	padding: 0;
 }
 
 .url-icon
@@ -183,7 +210,7 @@ canvas
 			color: white;
 		}
 	}
-	
+
 	ul
 	{
 		list-style: none;
@@ -193,6 +220,7 @@ canvas
 
 	.btn-color
 	{
+		@extend .btn-tool;
 		display: block;
 		border: solid 1px $light;
 		width: 30px;
@@ -234,6 +262,14 @@ canvas
 			color: $disabledColorHover;
 		}
 	}
+}
+
+.toolbar-logo
+{
+	@extend .logo;
+	position: absolute;
+	top: -28px;
+	margin-left: -10px;
 }
 
 .notification
@@ -346,4 +382,61 @@ canvas
 	10% { opacity: 1; }
 	75% { opacity: 1; }
 	100% { opacity: 0; }
+}
+
+@media(max-width: 700px)
+{
+	.responsive
+	{
+		display: none;
+	}
+}
+
+@media(max-width: 640px)
+{
+	.url-icon
+	{
+		margin-left: 0;
+	}
+}
+
+@media(max-width: 540px)
+{
+	#room-url
+	{
+		padding-left: 0;
+		padding-right: 0;
+	}
+
+	.notification
+	{
+		font-size: 18px;
+		padding: 10px 5px 10px 5px;
+	}
+
+	main
+	{
+		grid-gap: 20px;
+	}
+}
+
+@media(max-width: 480px)
+{
+	.responsive-icon-text
+	{
+		display: none;
+	}
+
+	.toolbar-logo
+	{
+		display: none;
+	}
+}
+
+@media(min-width: 700px)
+{
+	.toolbar-logo
+	{
+		display: none;
+	}
 }

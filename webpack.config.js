@@ -4,6 +4,9 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 const OptimizeCssAssetsPlugin = require("optimize-css-assets-webpack-plugin");
 const TerserPlugin = require("terser-webpack-plugin");
 
+const META_VIEWPORT = "width=device-width, initial-scale=1.0";
+const META_DESCRIPTION = "synchronized group drawing";
+
 module.exports =
 {
 	mode: "development",
@@ -82,14 +85,27 @@ module.exports =
 			name: "[name].[ext]"
 		}),
 		new HtmlWebpackPlugin({
-			title: "Livedraw",
+			title: "SyncPaint - Synchronized Drawing",
 			filename: "index.html",
-			template: "./src/frontend/index.html"
+			template: "./src/frontend/index.html",
+			meta: {
+				viewport: META_VIEWPORT,
+				description: META_DESCRIPTION
+			}
 		}),
 		new HtmlWebpackPlugin({
-			title: "Livedraw",
+			title: "SyncPaint - Drawing Room",
 			filename: "draw.html",
-			template: "./src/frontend/draw.html"
+			template: "./src/frontend/draw.html",
+			meta: {
+				viewport: META_VIEWPORT,
+				description: META_DESCRIPTION
+			}
+		}),
+		new HtmlWebpackPlugin({
+			filename: "toolbar.html",
+			template: "./src/frontend/toolbar.html",
+			inject: false
 		})
 	]
 }

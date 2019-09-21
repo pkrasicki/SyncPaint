@@ -7,21 +7,23 @@ import {Brush} from "./tools/brush";
 import {Pencil} from "./tools/pencil";
 import {PaintRoller} from "./tools/paint-roller";
 import {Eraser} from "./tools/eraser";
-import {Toolbar} from "./toolbar/toolbar";
 import {Notification} from "./notification/notification";
 import {NotificationSystem} from "./notification/notification-system";
 import {DrawingData} from "./drawing-data/drawing-data";
 
-const canvasWidth = 0.9;
-const canvasHeight = 0.9;
-const defaultBrushSize = 20;
-const defaultPaintColor = "#000000";
-const defaultPaintTool = "Brush";
+const CANVAS_SIZE = 0.9;
+const CANVAS_SIZE_MEDIUM = 0.85;
+const CANVAS_SIZE_SMALL = 0.8;
+const MEDIUM_SIZE_PX = 550;
+const SMALL_SIZE_PX = 420;
+const DEFAULT_BRUSH_SIZE = 20;
+const DEFAULT_PAINT_COLOR = "#000000";
+const DEFAULT_PAINT_TOOL = "Brush";
 const notificationSystem = new NotificationSystem();
-var canvas, socket, ctx, brushBoundsPreview, bgCtx, toolbarElement, colorPicker,
-	backgroundSelectionModal, sizeValueSpan, brushSizeMenu, backgroundDropArea;
+var canvas, socket, ctx, brushBoundsPreview, bgCtx, colorPicker, backgroundSelectionModal,
+	sizeValueSpan, brushSizeMenu, backgroundDropArea, roomUrlLink;
 var isDrawing = false;
-var paintTool = getTool(defaultPaintTool, defaultBrushSize, defaultPaintColor);
+var paintTool = getTool(DEFAULT_PAINT_TOOL, DEFAULT_BRUSH_SIZE, DEFAULT_PAINT_COLOR);
 var drawingStartPos = {x: 0, y: 0};
 var drawingEndPos = {x: 0, y: 0};
 var isSavingCanvas = false;
@@ -31,11 +33,23 @@ function setCanvasSize()
 {
 	const canvasData = canvas.toDataURL("image/png");
 	const bgData = bgCanvas.toDataURL("image/png");
-	canvas.height = window.innerHeight * canvasHeight;
-	canvas.width = window.innerWidth * canvasWidth;
+	var newHeight = window.innerHeight * CANVAS_SIZE;
+	var newWidth = window.innerWidth * CANVAS_SIZE;
 
-	bgCanvas.height = window.innerHeight * canvasHeight;
-	bgCanvas.width = window.innerWidth * canvasWidth;
+	if (window.innerWidth < SMALL_SIZE_PX)
+		newWidth = window.innerWidth * CANVAS_SIZE_SMALL;
+	else if (window.innerWidth < MEDIUM_SIZE_PX)
+		newWidth = window.innerWidth * CANVAS_SIZE_MEDIUM;
+
+	if (window.innerHeight < SMALL_SIZE_PX)
+		newHeight = window.innerHeight * CANVAS_SIZE_SMALL;
+	else if (window.innerHeight < MEDIUM_SIZE_PX)
+		newHeight = window.innerHeight * CANVAS_SIZE_MEDIUM;
+
+	canvas.height = newHeight;
+	canvas.width = newWidth;
+	bgCanvas.height = newHeight;
+	bgCanvas.width = newWidth;
 	loadCanvasData(ctx, canvasData);
 	loadCanvasData(bgCtx, bgData);
 }
@@ -44,7 +58,7 @@ function setCanvasSize()
 function loadCanvasData(ctx, canvasData)
 {
 	var canvasImage = new Image();
-	canvasImage.onload = e =>
+	canvasImage.onload = () =>
 	{
 		ctx.drawImage(canvasImage, 0, 0);
 	};
@@ -55,7 +69,7 @@ function loadCanvasData(ctx, canvasData)
 // toolbar tool icon clicked
 function paintToolSwitch(e)
 {
-	const type = e.target.dataset.tooltype;
+	const type = e.currentTarget.dataset.tooltype;
 
 	// background image is not a tool
 	if (type == "BackgroundImage")
@@ -96,40 +110,53 @@ function paintColorSwitch(e)
 	updateBrushPreview();
 }
 
-function addToolbarIcons()
+function createToolbar(toolbar)
 {
-	var ul = document.createElement("ul");
-	toolbarElement.appendChild(ul);
-
-	var isDefaultToolFound = false;
-	var isDefaultColorFound = false;
-	var toolbar = new Toolbar();
-
-	toolbar.getToolIcons(paintToolSwitch).forEach(icon =>
+	fetch("toolbar.html")
+	.then(res => res.text())
+	.then(html =>
 	{
-		if (!isDefaultToolFound && icon.dataset.tooltype == defaultPaintTool)
+		toolbar.insertAdjacentHTML("beforeend", html);
+		addToolbarIcons(toolbar);
+	})
+	.catch(err =>
+	{
+		console.error("ERROR: can't load toolbar: ", err);
+	});
+}
+
+function addToolbarIcons(toolbar)
+{
+	var isDefaultToolFound = false;
+	const toolIcons = toolbar.querySelectorAll("ul > li i.btn-tool");
+	toolIcons.forEach(icon =>
+	{
+		const listItem = icon.parentElement;
+		if (!isDefaultToolFound && listItem.dataset.tooltype == DEFAULT_PAINT_TOOL)
 		{
-			icon.classList.add("selected")
+			icon.classList.add("selected");
 			isDefaultToolFound = true;
 		}
 
-		if (icon.dataset.tooltype == "BackgroundImage")
-		{
-			icon.addEventListener("click", showBackgroundSelectionModal);
-		}
+		if (listItem.dataset.tooltype == "BackgroundImage")
+			listItem.addEventListener("click", showBackgroundSelectionModal);
 
-		ul.appendChild(icon);
+		if (!icon.classList.contains("disabled"))
+			listItem.addEventListener("click", paintToolSwitch);
 	});
 
-	toolbar.getColorIcons(paintColorSwitch).forEach(icon =>
+	var isDefaultColorFound = false;
+	const toolbarColors = toolbar.querySelectorAll(".btn-color");
+	toolbarColors.forEach(item =>
 	{
-		if (!isDefaultColorFound && icon.dataset.color == defaultPaintColor)
+		if (!isDefaultColorFound && item.dataset.color == DEFAULT_PAINT_COLOR)
 		{
-			icon.classList.add("selected-color");
+			item.classList.add("selected-color");
 			isDefaultColorFound = true;
 		}
 
-		ul.appendChild(icon);
+		item.style.backgroundColor = item.dataset.color;
+		item.addEventListener("click", paintColorSwitch);
 	});
 }
 
@@ -145,7 +172,10 @@ function getTool(toolName, size, color)
 	else if (toolName == "Eraser")
 		return new Eraser(size, color);
 	else
+	{
+		console.error("wrong tool name:", toolName);
 		return null;
+	}
 }
 
 function roomUrlClicked(e)
@@ -153,9 +183,9 @@ function roomUrlClicked(e)
 	e.preventDefault();
 
 	var textArea = document.createElement("TEXTAREA");
-	textArea.value = e.target.dataset.clipboard;
+	textArea.value = e.currentTarget.dataset.clipboard;
 	textArea.classList.add("clipboard");
-	e.target.appendChild(textArea);
+	e.currentTarget.appendChild(textArea);
 	textArea.focus();
 	textArea.select();
 
@@ -167,7 +197,7 @@ function roomUrlClicked(e)
 		console.error("ERROR: can't copy URL to clipboard");
 	}
 
-	e.target.removeChild(textArea);
+	e.currentTarget.removeChild(textArea);
 }
 
 function canvasMouseMoved(e)
@@ -204,7 +234,7 @@ function canvasMouseDown(e)
 	socket.emit("draw", drawingData);
 }
 
-function canvasMouseUp(e)
+function canvasMouseUp()
 {
 	isDrawing = false;
 }
@@ -216,7 +246,7 @@ function canvasMouseOver(e)
 	brushBoundsPreview.style.top = (e.clientY - brushBoundsPreview.offsetHeight / 2) + "px";
 }
 
-function canvasMouseOut(e)
+function canvasMouseOut()
 {
 	brushBoundsPreview.style.visibility = "hidden";
 }
@@ -287,6 +317,7 @@ function saveBtnClicked(e)
 
 	var backgroundImage = new Image();
 	var image = new Image();
+	var currentTarget = e.currentTarget;
 
 	backgroundImage.onload = () =>
 	{
@@ -302,26 +333,39 @@ function saveBtnClicked(e)
 		tempCtx.drawImage(backgroundImage, 0, 0);
 		tempCtx.drawImage(image, 0, 0);
 
-		e.target.href = tempCanvas.toDataURL("image/png");
+		currentTarget.href = tempCanvas.toDataURL("image/png");
 		isSavingCanvas = true;
-		e.target.click();
+		currentTarget.click();
 	};
 
 	backgroundImage.src = bgCanvas.toDataURL("image/png");
 }
 
+function updateDisplayedRoomUrl(fullRoomUrl, roomName)
+{
+	var regex = /^https?:\/\/(www\.)?/;
+	var domainName = fullRoomUrl.replace(regex, "");
+	domainName = domainName.replace(/\/.*$/, "");
+	var displayName = `${domainName}/${roomName}`;
+
+	if (window.innerWidth < 500)
+		displayName = `.../${roomName}`;
+
+	roomUrlLink.querySelector(".url-container span").innerHTML = displayName;
+}
+
 // connect to websocket
-function initializeSocket(roomUrl)
+function initializeSocket()
 {
 	try
 	{
 		socket = io();
 
-		socket.on("receiveRoomURL", roomUrlString =>
+		socket.on("receiveRoomURL", (fullRoomUrl, roomName) =>
 		{
-			roomUrl.innerHTML = `${roomUrlString} <i class="fas fa-copy url-icon"></i>`;
-			roomUrl.href = roomUrlString;
-			roomUrl.dataset.clipboard = roomUrlString;
+			updateDisplayedRoomUrl(fullRoomUrl, roomName);
+			roomUrlLink.href = fullRoomUrl;
+			roomUrlLink.dataset.clipboard = fullRoomUrl;
 		});
 
 		socket.on("userJoin", userName =>
@@ -387,7 +431,7 @@ function brushSizeChange(e)
 	updateBrushPreview();
 }
 
-function showBackgroundSelectionModal(e)
+function showBackgroundSelectionModal()
 {
 	backgroundSelectionModal.style.left = (window.innerWidth / 4) + "px";
 	backgroundSelectionModal.style.top = (window.innerHeight / 4) + "px";
@@ -417,7 +461,7 @@ function addCanvasBackgroundImage()
 	var imagePreview = document.querySelector("#bg-image-preview");
 	if (!imagePreview)
 		return;
-	
+
 	loadCanvasData(bgCtx, imagePreview.src);
 	socket.emit("receiveBackgroundCanvasAll", imagePreview.src);
 }
@@ -472,8 +516,8 @@ window.addEventListener("load", () =>
 
 	ctx = canvas.getContext("2d");
 	bgCtx = bgCanvas.getContext("2d");
-	toolbarElement = document.querySelector(".toolbar");
-	const roomUrl = document.querySelector("#room-url");
+	const toolbar = document.querySelector(".toolbar");
+	roomUrlLink = document.querySelector("#room-url");
 	const saveBtn = document.querySelector("#save");
 	colorPicker = document.querySelector("#color-picker");
 	const brushSizeBtn = document.querySelector(".brush-size");
@@ -490,7 +534,7 @@ window.addEventListener("load", () =>
 	canvas.addEventListener("mousedown", canvasMouseDown);
 	canvas.addEventListener("mouseup", canvasMouseUp);
 	window.addEventListener("mouseup", canvasMouseUp);
-	roomUrl.addEventListener("click", roomUrlClicked);
+	roomUrlLink.addEventListener("click", roomUrlClicked);
 	saveBtn.addEventListener("click", saveBtnClicked);
 	colorPicker.addEventListener("change", paintColorSwitch);
 	brushSizeBtn.addEventListener("click", brushSizeBtnClicked);
@@ -500,10 +544,10 @@ window.addEventListener("load", () =>
 	backgroundDropArea.addEventListener("dragover", imageDraggedOver);
 	backgroundDropArea.addEventListener("drop", imageDropped);
 
-	initializeSocket(roomUrl);
+	initializeSocket();
 	setCanvasSize();
-	addToolbarIcons();
+	createToolbar(toolbar);
 	createBrushPreview();
 
-	sizeSlider.value = defaultBrushSize;
+	sizeSlider.value = DEFAULT_BRUSH_SIZE;
 });

@@ -44,7 +44,7 @@ class NotificationSystem
 
 	removeOldest()
 	{
-		var oldestNotification = this.notifications.reduce((prev, cur) => prev.timestamp < cur.timestamp ? prev : cur);
+		var oldestNotification = this.notifications.reduce((prev, cur) => prev.dateCreated < cur.dateCreated ? prev : cur);
 		this.remove(oldestNotification);
 	}
 }

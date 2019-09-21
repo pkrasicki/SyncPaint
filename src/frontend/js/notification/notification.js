@@ -5,7 +5,7 @@ class Notification
 	constructor(text, lifeTimeMs=5000)
 	{
 		this.text = text;
-		this.timestamp = Date.now();
+		this.dateCreated = Date.now();
 		this.element = document.createElement("div");
 		this.element.classList.add("notification");
 		this.element.innerHTML = text;

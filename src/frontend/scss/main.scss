@@ -41,18 +41,6 @@ a
 	}
 }
 
-.draw-btn-alt
-{
-	border: solid 1px white;
-	padding: 5px;
-	border-radius: 5px;
-
-	&:hover
-	{
-		border-color: $linkColorLight;
-	}
-}
-
 nav.menu
 {
 	margin: 0;
@@ -90,18 +78,6 @@ nav.menu
 	{
 		position: relative;
 		top: -5px;
-	}
-
-	.logo
-	{
-		width: 22px;
-		height: 22px;
-		background: url(../img/logo.png);
-		background-position: center;
-		background-size: cover;
-		display: inline-block;
-		position: relative;
-		top: 5px;
 	}
 }
 
