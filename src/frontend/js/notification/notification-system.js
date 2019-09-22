@@ -16,7 +16,7 @@ class NotificationSystem
 			const offsetTop = n.getElement().offsetTop;
 			const newBottomOffset = (window.innerHeight - offsetTop) + this.notificationBottomMargin;
 			n.getElement().style.bottom = newBottomOffset + "px";
-			
+
 			const maxNotifications = Math.floor((window.innerHeight - document.body.offsetHeight) / this.notificationVerticalSpace);
 			const numNotifications = this.notifications.length + 1; // existing notifications + the new one we create
 

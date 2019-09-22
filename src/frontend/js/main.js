@@ -90,7 +90,7 @@ function paintToolSwitch(e)
 function paintColorSwitch(e)
 {
 	var previouslySelected = document.querySelector(".selected-color");
-	
+
 	if (previouslySelected)
 		previouslySelected.classList.remove("selected-color");
 
@@ -284,7 +284,7 @@ function updateBrushPreview()
 	const blur = paintTool.blur;
 	const color = paintTool.color;
 	const style = paintTool.style;
-	
+
 	document.querySelectorAll(".brush-preview").forEach(item =>
 	{
 		if(item.dataset.brushBoundsPreview)
@@ -372,12 +372,12 @@ function initializeSocket()
 		{
 			notificationSystem.add(new Notification(`User ${userName} has joined`));
 		});
-		
+
 		socket.on("userLeave", userName =>
 		{
 			notificationSystem.add(new Notification(`User ${userName} has left`));
 		});
-		
+
 		socket.on("draw", drawingData =>
 		{
 			draw(drawingData);
@@ -392,7 +392,7 @@ function initializeSocket()
 		{
 			socket.emit("receiveBackgroundCanvas", bgCanvas.toDataURL("image/png"));
 		});
-		
+
 		socket.on("receiveCanvas", canvasData =>
 		{
 			loadCanvasData(ctx, canvasData);
@@ -507,6 +507,12 @@ function imageDropped(e)
 	}
 }
 
+function setLocalBackgroundColor(color)
+{
+	bgCtx.fillStyle = color;
+	bgCtx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
+}
+
 window.addEventListener("load", () =>
 {
 	canvas = document.querySelector("#drawArea");
@@ -548,6 +554,7 @@ window.addEventListener("load", () =>
 	setCanvasSize();
 	createToolbar(toolbar);
 	createBrushPreview();
+	setLocalBackgroundColor("white"); // make background white by default
 
 	sizeSlider.value = DEFAULT_BRUSH_SIZE;
 });

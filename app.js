@@ -83,10 +83,10 @@ io.on("connection", socket =>
 		// ask for current canvas
 		if(!io.sockets.adapter.rooms[roomName].requesterIds)
 			io.sockets.adapter.rooms[roomName].requesterIds = [];
-	
+
 		if(!io.sockets.adapter.rooms[roomName].bgRequesterIds)
 			io.sockets.adapter.rooms[roomName].bgRequesterIds = [];
-		
+
 		io.sockets.adapter.rooms[roomName].requesterIds.push(socket.id);
 		io.to(io.sockets.adapter.rooms[roomName].adminId).emit("canvasRequest");
 
@@ -155,7 +155,7 @@ io.on("connection", socket =>
 				io.sockets.adapter.rooms[roomName].bgRequesterIds.splice(index, 1);
 			}
 		}
-		
+
 		if (io.sockets.adapter.rooms[roomName] && io.sockets.adapter.rooms[roomName].length > 0)
 		{
 			// if user is admin
