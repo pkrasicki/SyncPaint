@@ -49,19 +49,32 @@ nav.menu-draw
 	flex-direction: row;
 	justify-content: space-evenly;
 
-	.settings-btn
-	{
-		color: $disabledColor;
-
-		&:hover
-		{
-			color: $disabledColorHover;
-		}
-	}
-
 	& > *
 	{
 		flex: 1;
+	}
+}
+
+.options-panel
+{
+	background: $dark;
+	color: $light;
+	width: 180px;
+	height: 70px;
+	border: solid 1px darken($dark, 5);
+	border-radius: 5px;
+	position: absolute;
+	z-index: 2;
+	top: 42px;
+	visibility: hidden;
+	padding: 10px;
+
+	input
+	{
+		font-size: 12px;
+		padding: 0 0;
+		margin-top: 5px;
+		width: 80%;
 	}
 }
 
@@ -297,7 +310,7 @@ canvas
 	width: 200px;
 	padding: 80px;
 	background: $dark;
-	border: solid 1px black;
+	border: solid 1px darken($dark, 5);
 	border-radius: 5px;
 	position: absolute;
 	top: 40px;
@@ -398,6 +411,11 @@ canvas
 	{
 		margin-left: 0;
 	}
+
+	.options-panel
+	{
+		padding: 5px 0;
+	}
 }
 
 @media(max-width: 540px)
@@ -418,6 +436,16 @@ canvas
 	{
 		grid-gap: 20px;
 	}
+
+	.options-panel
+	{
+		width: 150px;
+		height: 60px;
+		input
+		{
+			width: 60%;
+		}
+	}
 }
 
 @media(max-width: 480px)
@@ -430,6 +458,11 @@ canvas
 	.toolbar-logo
 	{
 		display: none;
+	}
+
+	.options-panel
+	{
+		width: 130px;
 	}
 }
 

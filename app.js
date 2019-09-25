@@ -4,9 +4,9 @@ const http = require("http").Server(app);
 const io = require("socket.io")(http);
 const path = require("path");
 
-app.use(express.static("./dist"));
+var users = [];
 
-var userNames = [];
+app.use(express.static("./dist"));
 
 function generateRandomString(length, chars, prefix="")
 {
@@ -30,6 +30,7 @@ function generateRoomName()
 
 function generateUniqueUserName()
 {
+	const userNames = users.map(user => user.name);
 	const nameLength = 6;
 	const chars = "1234567890";
 	var name;
@@ -46,6 +47,31 @@ function getRoomNameFromUrl(url)
 {
 	var splitArray = url.split("/");
 	return splitArray[splitArray.length - 1];
+}
+
+function changeUserName(socketId, newUserName)
+{
+	for (var i = 0; i < users.length; i++)
+	{
+		if (users[i].id == socketId)
+		{
+			users[i].name = newUserName
+			break;
+		}
+	}
+}
+
+function removeUserName(socketId)
+{
+	for (var i = 0; i < users.length; i++)
+	{
+		if (users[i].id == socketId)
+		{
+			var name = users[i].name;
+			users.splice(i, 1);
+			return name;
+		}
+	}
 }
 
 app.get("/d", (req, res) =>
@@ -66,13 +92,13 @@ app.get("/:id", (req, res) =>
 io.on("connection", socket =>
 {
 	const roomName = getRoomNameFromUrl(socket.handshake.headers.referer);
-	var userName = generateUniqueUserName();
+	const userName = generateUniqueUserName();
 
 	socket.join(roomName);
-	socket.emit("receiveRoomURL", socket.handshake.headers.referer, roomName)
+	users.push({ id: socket.id, name: userName });
+	socket.emit("receiveRoomURL", socket.handshake.headers.referer, roomName, userName)
 	socket.broadcast.to(roomName).emit("userJoin", userName);
-	userNames.push(userName);
-
+	
 	var numUsers = io.sockets.adapter.rooms[roomName].length;
 	if (numUsers <= 1)
 	{
@@ -130,14 +156,18 @@ io.on("connection", socket =>
 		socket.broadcast.to(roomName).emit("receiveBackgroundCanvas", canvasData);
 	});
 
+	socket.on("userNameChange", newUserName =>
+	{
+		changeUserName(socket.id, newUserName);
+	});
+
 	socket.on("disconnect", () =>
 	{
+		var userName = removeUserName(socket.id);
 		io.sockets.in(roomName).emit("userLeave", userName);
-		var index = userNames.indexOf(userName);
-		userNames.splice(index, 1);
 
 		// remove pending canvas request
-		if(io.sockets.adapter.rooms[roomName] && io.sockets.adapter.rooms[roomName].requesterIds)
+		if (io.sockets.adapter.rooms[roomName] && io.sockets.adapter.rooms[roomName].requesterIds)
 		{
 			var index = io.sockets.adapter.rooms[roomName].requesterIds.indexOf(socket.id);
 			if (index > -1)
@@ -147,7 +177,7 @@ io.on("connection", socket =>
 		}
 
 		// remove pending background canvas request
-		if(io.sockets.adapter.rooms[roomName] && io.sockets.adapter.rooms[roomName].bgRequesterIds)
+		if (io.sockets.adapter.rooms[roomName] && io.sockets.adapter.rooms[roomName].bgRequesterIds)
 		{
 			var index = io.sockets.adapter.rooms[roomName].bgRequesterIds.indexOf(socket.id);
 			if (index > -1)

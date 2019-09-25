@@ -361,11 +361,12 @@ function initializeSocket()
 	{
 		socket = io();
 
-		socket.on("receiveRoomURL", (fullRoomUrl, roomName) =>
+		socket.on("receiveRoomURL", (fullRoomUrl, roomName, userName) =>
 		{
 			updateDisplayedRoomUrl(fullRoomUrl, roomName);
 			roomUrlLink.href = fullRoomUrl;
 			roomUrlLink.dataset.clipboard = fullRoomUrl;
+			document.querySelector(".options-panel input").value = userName;
 		});
 
 		socket.on("userJoin", userName =>
@@ -419,8 +420,16 @@ function brushSizeBtnClicked(e)
 	} else
 	{
 		brushSizeMenu.style.visibility = "visible";
-		var rect = e.target.getBoundingClientRect();
-		brushSizeMenu.style.left = (rect.x - brushSizeMenu.offsetWidth / 2) + "px";
+
+		var offset = 90;
+		if (window.innerWidth < 500)
+			offset = 85;
+		if (window.innerWidth < 400)
+			offset = 65;
+		if (window.innerWidth < 300)
+			offset = 45;
+
+		brushSizeMenu.style.left = (e.currentTarget.offsetLeft - offset) + "px";
 	}
 }
 
@@ -513,6 +522,33 @@ function setLocalBackgroundColor(color)
 	bgCtx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
 }
 
+function settingsBtnClicked(e)
+{
+	const panel = document.querySelector(".options-panel");
+	if (panel.style.visibility == "visible")
+	{
+		panel.style.visibility = "hidden";
+	} else
+	{
+		panel.style.visibility = "visible";
+		var parent = panel.parentElement;
+		var left = window.innerWidth - panel.clientWidth;
+		left -= parent.clientWidth / 4;
+		panel.style.left = left + "px";
+	}
+}
+
+function disableOptionsPanel()
+{
+	const panel = document.querySelector(".options-panel");
+	panel.style.visibility = "hidden";
+}
+
+function nameInputChange(e)
+{
+	socket.emit("userNameChange", e.target.value);
+}
+
 window.addEventListener("load", () =>
 {
 	canvas = document.querySelector("#drawArea");
@@ -532,8 +568,11 @@ window.addEventListener("load", () =>
 	sizeValueSpan = document.querySelector(".size-value");
 	backgroundSelectionModal = document.querySelector(".background-modal");
 	backgroundDropArea = document.querySelector(".drop-area");
+	const settingsBtn = document.querySelector("#settings");
+	const nameInput = document.querySelector(".options-panel input");
 
 	window.addEventListener("resize", setCanvasSize);
+	window.addEventListener("resize", disableOptionsPanel);
 	canvas.addEventListener("mousemove", canvasMouseMoved);
 	canvas.addEventListener("mouseover", canvasMouseOver);
 	canvas.addEventListener("mouseout", canvasMouseOut);
@@ -549,6 +588,8 @@ window.addEventListener("load", () =>
 	document.getElementById("add-image").addEventListener("click", addCanvasBackgroundImage);
 	backgroundDropArea.addEventListener("dragover", imageDraggedOver);
 	backgroundDropArea.addEventListener("drop", imageDropped);
+	settingsBtn.addEventListener("click", settingsBtnClicked);
+	nameInput.addEventListener("change", nameInputChange);
 
 	initializeSocket();
 	setCanvasSize();
