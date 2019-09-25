@@ -4,6 +4,7 @@ html
 {
 	min-height: 100%;
 	position: relative;
+	scroll-behavior: smooth;
 }
 
 body
@@ -167,7 +168,7 @@ nav.menu
 	background: url(../img/brush-settings.png);
 	background-position: center;
 	background-size: cover;
-	width: 202px;
+	width: 250px;
 	height: 85px;
 	margin: 0 auto;
 }
@@ -189,5 +190,13 @@ footer
 	p
 	{
 		margin: 0;
+	}
+}
+
+@media(prefers-reduced-motion: reduce)
+{
+	html
+	{
+		scroll-behavior: auto;
 	}
 }
