@@ -8,8 +8,10 @@ class Notification
 		this.dateCreated = Date.now();
 		this.element = document.createElement("div");
 		this.element.classList.add("notification");
-		this.element.innerHTML = text;
 		this.element.style.animation = `notif ${lifeTimeMs}ms`;
+
+		var textNode = document.createTextNode(text); // this will escape HTML so it's safe to use with user names
+		this.element.appendChild(textNode);
 		document.body.appendChild(this.element);
 	}
 

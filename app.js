@@ -74,6 +74,24 @@ function removeUserName(socketId)
 	}
 }
 
+function getUserNameFromCookie(cookie)
+{
+	if (cookie)
+	{
+		var splitArray = cookie.split(/;/);
+		for (var i = 0; i < splitArray.length; i++)
+		{
+			var value = splitArray[i].replace(/^[^=]*=/, "");
+			var key = splitArray[i].replace(/=.*$/, "").trim();
+
+			if (key == "userName")
+				return value;
+		}
+	}
+
+	return "";
+}
+
 app.get("/d", (req, res) =>
 {
 	res.redirect("/" + generateRoomName());
@@ -92,13 +110,16 @@ app.get("/:id", (req, res) =>
 io.on("connection", socket =>
 {
 	const roomName = getRoomNameFromUrl(socket.handshake.headers.referer);
-	const userName = generateUniqueUserName();
+	var userName = getUserNameFromCookie(socket.handshake.headers.cookie);
+
+	if (userName == "")
+		userName = generateUniqueUserName();
 
 	socket.join(roomName);
 	users.push({ id: socket.id, name: userName });
 	socket.emit("receiveRoomURL", socket.handshake.headers.referer, roomName, userName)
 	socket.broadcast.to(roomName).emit("userJoin", userName);
-	
+
 	var numUsers = io.sockets.adapter.rooms[roomName].length;
 	if (numUsers <= 1)
 	{

@@ -524,6 +524,8 @@ function setLocalBackgroundColor(color)
 
 function settingsBtnClicked(e)
 {
+	e.preventDefault();
+
 	const panel = document.querySelector(".options-panel");
 	if (panel.style.visibility == "visible")
 	{
@@ -547,6 +549,8 @@ function disableOptionsPanel()
 function nameInputChange(e)
 {
 	socket.emit("userNameChange", e.target.value);
+	const cookieMaxAge = 60*60*24*30;
+	document.cookie = `userName=${e.target.value}; max-age=${cookieMaxAge}`;
 }
 
 window.addEventListener("load", () =>
