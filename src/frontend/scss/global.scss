@@ -14,11 +14,52 @@ $warningColor: rgb(230, 118, 44);
 $warningColorLight: rgb(228, 136, 76);
 $warningColorDark: rgb(192, 99, 37);
 
+.menu
+{
+	margin: 0;
+	padding: 0;
+	background: $dark;
+	color: white;
+	font-size: $navFontSize;
+	height: 39px;
+
+	a
+	{
+		color: white;
+
+		&:hover
+		{
+			color: $linkColorLight;
+		}
+	}
+
+	ul
+	{
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		align-items: center;
+		height: 100%;
+	}
+
+	ul li
+	{
+		text-align: center;
+	}
+
+	.logo-link
+	{
+		position: relative;
+		top: -3px;
+	}
+}
+
 .btn
 {
 	background-color: $primaryColorLight;
 	color: white;
-	border: none;
 	border-radius: 5px;
 	padding: 5px;
 	border: solid 1px $primaryColorDark;
@@ -53,7 +94,7 @@ $warningColorDark: rgb(192, 99, 37);
 	background-size: cover;
 	display: inline-block;
 	position: relative;
-	top: 5px;
+	top: 6px;
 }
 
 .draw-btn-alt

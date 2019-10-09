@@ -87,7 +87,7 @@ function paintToolSwitch(e)
 }
 
 // color change by clicking a toolbar icon or editing color input
-function paintColorSwitch(e)
+function paintColorChanged(e)
 {
 	var previouslySelected = document.querySelector(".selected-color");
 
@@ -156,7 +156,7 @@ function addToolbarIcons(toolbar)
 		}
 
 		item.style.backgroundColor = item.dataset.color;
-		item.addEventListener("click", paintColorSwitch);
+		item.addEventListener("click", paintColorChanged);
 	});
 }
 
@@ -348,8 +348,8 @@ function updateDisplayedRoomUrl(fullRoomUrl, roomName)
 	domainName = domainName.replace(/\/.*$/, "");
 	var displayName = `${domainName}/${roomName}`;
 
-	if (window.innerWidth < 500)
-		displayName = `.../${roomName}`;
+	if (window.innerWidth < MEDIUM_SIZE_PX)
+		displayName = `${roomName}`;
 
 	roomUrlLink.querySelector(".url-container span").innerHTML = displayName;
 }
@@ -433,7 +433,7 @@ function brushSizeBtnClicked(e)
 	}
 }
 
-function brushSizeChange(e)
+function brushSizeChanged(e)
 {
 	sizeValueSpan.innerHTML = e.target.value + "px";
 	paintTool.setSize(Number(e.target.value));
@@ -540,17 +540,18 @@ function settingsBtnClicked(e)
 	}
 }
 
-function disableOptionsPanel()
-{
-	const panel = document.querySelector(".options-panel");
-	panel.style.visibility = "hidden";
-}
-
-function nameInputChange(e)
+function userNameChanged(e)
 {
 	socket.emit("userNameChange", e.target.value);
 	const cookieMaxAge = 60*60*24*30;
 	document.cookie = `userName=${e.target.value}; max-age=${cookieMaxAge}`;
+}
+
+function windowResized()
+{
+	setCanvasSize();
+	document.querySelector(".options-panel").style.visibility = "hidden";
+	brushSizeMenu.style.visibility = "hidden";
 }
 
 window.addEventListener("load", () =>
@@ -575,8 +576,7 @@ window.addEventListener("load", () =>
 	const settingsBtn = document.querySelector("#settings");
 	const nameInput = document.querySelector(".options-panel input");
 
-	window.addEventListener("resize", setCanvasSize);
-	window.addEventListener("resize", disableOptionsPanel);
+	window.addEventListener("resize", windowResized);
 	canvas.addEventListener("mousemove", canvasMouseMoved);
 	canvas.addEventListener("mouseover", canvasMouseOver);
 	canvas.addEventListener("mouseout", canvasMouseOut);
@@ -585,15 +585,15 @@ window.addEventListener("load", () =>
 	window.addEventListener("mouseup", canvasMouseUp);
 	roomUrlLink.addEventListener("click", roomUrlClicked);
 	saveBtn.addEventListener("click", saveBtnClicked);
-	colorPicker.addEventListener("change", paintColorSwitch);
+	colorPicker.addEventListener("change", paintColorChanged);
 	brushSizeBtn.addEventListener("click", brushSizeBtnClicked);
-	sizeSlider.addEventListener("input", brushSizeChange);
+	sizeSlider.addEventListener("input", brushSizeChanged);
 	document.getElementById("hide-background-modal").addEventListener("click", hideBackgroundSelectionModal);
 	document.getElementById("add-image").addEventListener("click", addCanvasBackgroundImage);
 	backgroundDropArea.addEventListener("dragover", imageDraggedOver);
 	backgroundDropArea.addEventListener("drop", imageDropped);
 	settingsBtn.addEventListener("click", settingsBtnClicked);
-	nameInput.addEventListener("change", nameInputChange);
+	nameInput.addEventListener("change", userNameChanged);
 
 	initializeSocket();
 	setCanvasSize();

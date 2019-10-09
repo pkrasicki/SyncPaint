@@ -2,8 +2,6 @@
 
 html
 {
-	min-height: 100%;
-	position: relative;
 	scroll-behavior: smooth;
 }
 
@@ -39,46 +37,6 @@ a
 	{
 		background-color: $primaryColor;
 		box-shadow: 0px 0px 3px $dark;
-	}
-}
-
-nav.menu
-{
-	margin: 0;
-	padding: 0;
-	background: $dark;
-	color: white;
-	font-size: $navFontSize;
-	height: 39px;
-
-	a
-	{
-		color: white;
-
-		&:hover
-		{
-			color: $linkColorLight;
-		}
-	}
-
-	ul
-	{
-		list-style: none;
-		margin: 0;
-		padding: 10px;
-		display: grid;
-		grid-template-columns: repeat(3, 1fr);
-	}
-
-	ul li
-	{
-		text-align: center;
-	}
-
-	.logo-link
-	{
-		position: relative;
-		top: -5px;
 	}
 }
 

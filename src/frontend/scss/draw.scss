@@ -1,8 +1,8 @@
 @import "global";
 
-body.draw
+html.draw
 {
-	overflow-y: hidden;
+	overflow: hidden;
 }
 
 textarea.clibpoard
@@ -19,18 +19,15 @@ textarea.clibpoard
 	background: transparent;
 }
 
-nav.menu-draw
+.menu-draw
 {
+	@extend .menu;
+
 	ul
 	{
 		display: flex;
 		flex-direction: row;
 		justify-content: space-evenly;
-	}
-
-	ul > li
-	{
-		flex: 1;
 	}
 
 	.btn-nav
@@ -48,11 +45,7 @@ nav.menu-draw
 	display: flex;
 	flex-direction: row;
 	justify-content: space-evenly;
-
-	& > *
-	{
-		flex: 1;
-	}
+	flex: 1 1 30%;
 }
 
 .options-panel
@@ -87,7 +80,7 @@ nav.menu-draw
 		display: flex;
 		flex-direction: row;
 		justify-content: center;
-		justify-items: center;
+		align-items: center;
 	}
 
 	.brush-preview
@@ -100,7 +93,7 @@ nav.menu-draw
 			filter: brightness($brightnessFilterAmount);
 		}
 
-		input
+		#color-picker
 		{
 			padding: 0;
 			margin: 0;
@@ -125,39 +118,33 @@ nav.menu-draw
 .room
 {
 	min-width: 0px;
-}
+	max-width: 30%;
+	flex: 1 1 auto;
 
-#room-url
-{
-	@extend .draw-btn-alt;
-	max-width: 100%;
-	white-space: nowrap;
-	position: relative;
-	top: -5px;
-	overflow: hidden;
-}
+	#room-url
+	{
+		@extend .draw-btn-alt;
+		max-width: 100%;
+		white-space: nowrap;
+		overflow: hidden;
+		position: relative;
+		top: -2px;
 
-.url-container
-{
-	display: inline-block;
-	max-width: 90%;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	margin: 0;
-	padding: 0;
-	position: relative;
-	top: 3px;
-}
+		.url-container
+		{
+			display: inline-block;
+			max-width: 90%;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			position: relative;
+			top: 5px;
+		}
 
-.url-container span
-{
-	margin: 0;
-	padding: 0;
-}
-
-.url-icon
-{
-	margin-left: 10px;
+		.url-icon
+		{
+			margin-left: 5px;
+		}
+	}
 }
 
 main
@@ -281,7 +268,7 @@ canvas
 {
 	@extend .logo;
 	position: absolute;
-	top: -28px;
+	top: -30px;
 	margin-left: -10px;
 }
 
@@ -407,7 +394,7 @@ canvas
 
 @media(max-width: 640px)
 {
-	.url-icon
+	.room #room-url .url-icon
 	{
 		margin-left: 0;
 	}
@@ -437,6 +424,11 @@ canvas
 		grid-gap: 20px;
 	}
 
+	.options-container
+	{
+		padding-left: 10px;
+	}
+
 	.options-panel
 	{
 		width: 150px;
@@ -463,13 +455,5 @@ canvas
 	.options-panel
 	{
 		width: 130px;
-	}
-}
-
-@media(min-width: 700px)
-{
-	.toolbar-logo
-	{
-		display: none;
 	}
 }
