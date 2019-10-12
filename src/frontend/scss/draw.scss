@@ -22,6 +22,9 @@ textarea.clibpoard
 .menu-draw
 {
 	@extend .menu;
+	user-select: none;
+	-moz-user-select: none;
+	-webkit-user-select: none;
 
 	ul
 	{
@@ -109,7 +112,7 @@ textarea.clibpoard
 
 	.brush-size
 	{
-		display: inline-block;
+		display: none;
 		cursor: pointer;
 		margin-left: 20px;
 	}
@@ -294,8 +297,7 @@ canvas
 
 .brush-size-menu
 {
-	width: 200px;
-	padding: 80px;
+	width: 150px;
 	background: $dark;
 	border: solid 1px darken($dark, 5);
 	border-radius: 5px;
@@ -303,12 +305,13 @@ canvas
 	top: 40px;
 	visibility: hidden;
 	margin: 0;
-	padding: 0;
+	padding: 10px 10px;
 	z-index: 2;
+	cursor: default;
 
-	.size-slider
+	.slider
 	{
-		margin-top: 5px;
+		margin: 0 auto;
 	}
 }
 
@@ -376,6 +379,42 @@ canvas
 	z-index: 1;
 }
 
+.slider
+{
+	width: 150px;
+	padding: 0;
+	margin-left: 20px;
+	border: solid 1px $disabledColor;
+
+	.slider-fg
+	{
+		display: flex;
+		flex-direction: row;
+		justify-content: space-between;
+		height: 20px;
+		background: none;
+		cursor: pointer;
+	}
+
+	span
+	{
+		display: inline-block;
+		z-index: 1;
+		padding: 2px 5px;
+		pointer-events: none;
+		color: rgba(255, 255, 255, 0.9);
+	}
+
+	.slider-bg
+	{
+		background: $primaryColorDark;
+		height: 20px;
+		width: 0px;
+		position: absolute;
+		pointer-events: none;
+	}
+}
+
 @keyframes notif
 {
 	0% { opacity: 0; }
@@ -389,6 +428,16 @@ canvas
 	.responsive
 	{
 		display: none;
+	}
+
+	.nav-slider
+	{
+		display: none;
+	}
+
+	.brush-properties-container .brush-size
+	{
+		display: inline-block;
 	}
 }
 
@@ -455,5 +504,13 @@ canvas
 	.options-panel
 	{
 		width: 130px;
+	}
+}
+
+@media(min-width: 480px)
+{
+	.brush-properties-container .brush-preview
+	{
+		margin-left: 40px;
 	}
 }

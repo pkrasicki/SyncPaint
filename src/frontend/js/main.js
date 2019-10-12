@@ -10,6 +10,7 @@ import {Eraser} from "./tools/eraser";
 import {Notification} from "./notification/notification";
 import {NotificationSystem} from "./notification/notification-system";
 import {DrawingData} from "./drawing-data/drawing-data";
+import {Slider} from "./slider/slider";
 
 const CANVAS_SIZE = 0.9;
 const CANVAS_SIZE_MEDIUM = 0.85;
@@ -27,6 +28,8 @@ var paintTool = getTool(DEFAULT_PAINT_TOOL, DEFAULT_BRUSH_SIZE, DEFAULT_PAINT_CO
 var drawingStartPos = {x: 0, y: 0};
 var drawingEndPos = {x: 0, y: 0};
 var isSavingCanvas = false;
+var sliderMousePressed = false;
+var lastSelectedSlider;
 
 // set canvas size based on window dimensions
 function setCanvasSize()
@@ -237,6 +240,7 @@ function canvasMouseDown(e)
 function canvasMouseUp()
 {
 	isDrawing = false;
+	sliderMousePressed = false;
 }
 
 function canvasMouseOver(e)
@@ -433,13 +437,6 @@ function brushSizeBtnClicked(e)
 	}
 }
 
-function brushSizeChanged(e)
-{
-	sizeValueSpan.innerHTML = e.target.value + "px";
-	paintTool.setSize(Number(e.target.value));
-	updateBrushPreview();
-}
-
 function showBackgroundSelectionModal()
 {
 	backgroundSelectionModal.style.left = (window.innerWidth / 4) + "px";
@@ -540,6 +537,7 @@ function settingsBtnClicked(e)
 	}
 }
 
+// name changed by user
 function userNameChanged(e)
 {
 	socket.emit("userNameChange", e.target.value);
@@ -552,6 +550,49 @@ function windowResized()
 	setCanvasSize();
 	document.querySelector(".options-panel").style.visibility = "hidden";
 	brushSizeMenu.style.visibility = "hidden";
+
+	// there are two size sliders but only one is displayed at the time
+	// which slider is displayed depends on window size
+	// we don't know if any of them just became visible/invisible so update both with every window resize
+	document.querySelectorAll(".size-slider").forEach((slider) =>
+	{
+		Slider.updatePosition(slider.querySelector(".slider-fg"), paintTool.size);
+	});
+}
+
+// slider value changed by user
+function sizeSliderChanged(e)
+{
+	var size = Slider.update(lastSelectedSlider, e.clientX);
+	sizeValueSpan.innerHTML = size + "px";
+	paintTool.setSize(size);
+	updateBrushPreview();
+}
+
+// make sliders usable
+function initSliders()
+{
+	document.querySelectorAll(".size-slider").forEach((slider) =>
+	{
+		slider.dataset.value = DEFAULT_BRUSH_SIZE;
+		slider.addEventListener("click", sizeSliderChanged);
+	});
+
+	document.querySelectorAll(".slider").forEach((slider) =>
+	{
+		Slider.init(slider);
+		slider.addEventListener("mousedown", (e) =>
+		{
+			lastSelectedSlider = e.currentTarget;
+			sliderMousePressed = true;
+		});
+	});
+}
+
+function windowMouseMoved(e)
+{
+	if (sliderMousePressed)
+		sizeSliderChanged(e);
 }
 
 window.addEventListener("load", () =>
@@ -569,7 +610,6 @@ window.addEventListener("load", () =>
 	colorPicker = document.querySelector("#color-picker");
 	const brushSizeBtn = document.querySelector(".brush-size");
 	brushSizeMenu = document.querySelector(".brush-size-menu");
-	const sizeSlider = document.querySelector(".size-slider");
 	sizeValueSpan = document.querySelector(".size-value");
 	backgroundSelectionModal = document.querySelector(".background-modal");
 	backgroundDropArea = document.querySelector(".drop-area");
@@ -587,19 +627,18 @@ window.addEventListener("load", () =>
 	saveBtn.addEventListener("click", saveBtnClicked);
 	colorPicker.addEventListener("change", paintColorChanged);
 	brushSizeBtn.addEventListener("click", brushSizeBtnClicked);
-	sizeSlider.addEventListener("input", brushSizeChanged);
 	document.getElementById("hide-background-modal").addEventListener("click", hideBackgroundSelectionModal);
 	document.getElementById("add-image").addEventListener("click", addCanvasBackgroundImage);
 	backgroundDropArea.addEventListener("dragover", imageDraggedOver);
 	backgroundDropArea.addEventListener("drop", imageDropped);
 	settingsBtn.addEventListener("click", settingsBtnClicked);
 	nameInput.addEventListener("change", userNameChanged);
+	window.addEventListener("mousemove", windowMouseMoved);
 
 	initializeSocket();
 	setCanvasSize();
 	createToolbar(toolbar);
 	createBrushPreview();
 	setLocalBackgroundColor("white"); // make background white by default
-
-	sizeSlider.value = DEFAULT_BRUSH_SIZE;
+	initSliders();
 });
