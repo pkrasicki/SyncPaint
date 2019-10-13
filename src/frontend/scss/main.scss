@@ -86,12 +86,12 @@ a
 	display: grid;
 	grid-template-columns: 30% 60%;
 	grid-gap: 100px;
-	height: 450px;
+	height: 350px;
 	justify-content: center;
 	align-content: center;
 	text-align: left;
 	margin: 0 auto;
-	padding: 0 100px 0 0px;
+	padding: 50px 100px 50px 0;
 }
 
 .img-toolbar
@@ -110,12 +110,7 @@ a
 	flex-direction: column;
 	justify-content: center;
 
-	h2
-	{
-		margin: 0;
-	}
-	
-	p
+	h2, p
 	{
 		margin: 0;
 	}
@@ -127,8 +122,9 @@ a
 	background-position: center;
 	background-size: cover;
 	width: 250px;
-	height: 85px;
+	height: 39px;
 	margin: 0 auto;
+	margin-bottom: 50px;
 }
 
 footer
@@ -156,5 +152,93 @@ footer
 	html
 	{
 		scroll-behavior: auto;
+	}
+}
+
+@media(max-width: 640px)
+{
+	.welcome
+	{
+		padding: 50px 10px;
+	}
+}
+
+@media(max-width: 570px)
+{
+	.welcome h2
+	{
+		font-size: 36px;
+	}
+
+	.draw-btn
+	{
+		font-size: 22px;
+	}
+}
+
+@media(max-width: 500px)
+{
+	.welcome h2
+	{
+		font-size: 32px;
+	}
+
+	.draw-btn
+	{
+		font-size: 20px;
+	}
+}
+
+@media(max-width: 430px)
+{
+	nav.menu
+	{
+		font-size: 14px;
+	}
+
+	.welcome
+	{
+		padding: 50px 5px;
+	}
+
+	.welcome h2
+	{
+		font-size: 28px;
+	}
+
+	.draw-btn
+	{
+		font-size: 18px;
+	}
+
+	.about h2
+	{
+		font-size: 24px;
+	}
+
+	body
+	{
+		font-size: 18px;
+	}
+
+	.grid
+	{
+		grid-gap: 30px;
+		grid-template-columns: 10% 50%;
+		padding: 30px 0 30px 0;
+	}
+
+	.img-link
+	{
+		width: 280px;
+	}
+}
+
+@media(max-width: 350px)
+{
+	a.draw-btn-alt
+	{
+		padding: 0;
+		border: none;
 	}
 }
