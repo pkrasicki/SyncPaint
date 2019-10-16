@@ -57,7 +57,7 @@ textarea.clibpoard
 	color: $light;
 	width: 180px;
 	height: 70px;
-	border: solid 1px darken($dark, 5);
+	border: solid 1px $darker;
 	border-radius: 5px;
 	position: absolute;
 	z-index: 2;
@@ -299,7 +299,7 @@ canvas
 {
 	width: 150px;
 	background: $dark;
-	border: solid 1px darken($dark, 5);
+	border: solid 1px $darker;
 	border-radius: 5px;
 	position: absolute;
 	top: 40px;
@@ -319,22 +319,26 @@ canvas
 {
 	display: none;
 	position: absolute;
-	width: 50%;
-	height: 50%;
-	border: solid 1px "gray";
+	width: 50vw;
+	height: 50vh;
+	border: solid 1px $darker;
 	border-radius: 5px;
-	background: rgb(219, 219, 219);
-	box-shadow: 0 0 5px black;
+	background: $dark;
+	color: $light;
+	box-shadow: 0 0 10px $dark;
 	z-index: 2;
 	text-align: center;
-	color: $dark;
 	min-height: 420px;
+	padding: 0 50px;
 
-	input[type=text]
+	h2
 	{
-		margin-left: 20px;
-		margin-bottom: 30px;
-		width: 40%;
+		margin-bottom: 5px;
+	}
+
+	input[type=file]
+	{
+		text-align: center;
 	}
 
 	p
@@ -349,23 +353,32 @@ canvas
 
 	.drop-area
 	{
-		margin-bottom: 20px;
+		display: flex;
+		flex-direction: row;
+		justify-content: center;
+		align-items: center;
+		height: 100%;
+		max-height: 60%;
+		margin: 0 auto;
+		margin-top: 20px;
+		border: dashed 1px $light;
+		border-radius: 5px;
+		color: darken($light, 15);
+		overflow: hidden;
+	}
+
+	.buttons
+	{
+		position: absolute;
+		left: 0;
+		bottom: 15px;
+		width: 100%;
 	}
 }
 
 .background-modal
 {
 	@extend .modal;
-}
-
-.drop-area
-{
-	border: dashed 1px $dark;
-	width: 60%;
-	max-height: 60%;
-	margin: 0 auto;
-	color: lighten($dark, 35);
-	overflow: hidden;
 }
 
 .brush-preview-follower
@@ -439,6 +452,11 @@ canvas
 	{
 		display: inline-block;
 	}
+
+	.modal
+	{
+		width: 65vw;
+	}
 }
 
 @media(max-width: 640px)
@@ -486,6 +504,11 @@ canvas
 		{
 			width: 60%;
 		}
+	}
+
+	.modal h2
+	{
+		font-size: 18px;
 	}
 }
 

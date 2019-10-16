@@ -3,6 +3,7 @@ $primaryColorDark: rgb(16, 110, 172);
 $primaryColorLight: rgb(49, 143, 206);
 $linkColorLight: lighten($primaryColorLight, 15);
 $dark: #333;
+$darker: darken($dark, 5);
 $light: rgba(255,255,255,0.8);
 $lightHover: rgba(255,255,255,1);
 $disabledColor: rgba(255,255,255,0.5);
@@ -58,7 +59,7 @@ $warningColorDark: rgb(192, 99, 37);
 
 .btn
 {
-	background-color: $primaryColorLight;
+	background-color: $primaryColor;
 	color: white;
 	border-radius: 5px;
 	padding: 5px;
@@ -69,7 +70,7 @@ $warningColorDark: rgb(192, 99, 37);
 
 	&:hover
 	{
-		background-color: $primaryColor;
+		background-color: $primaryColorLight;
 		outline: none;
 	}
 }
@@ -77,11 +78,11 @@ $warningColorDark: rgb(192, 99, 37);
 .btn-warning
 {
 	@extend .btn;
-	background-color: $warningColorLight;
+	background-color: $warningColor;
 	border: solid 1px $warningColorDark;
 	&:hover
 	{
-		background-color: $warningColor;
+		background-color: $warningColorLight;
 	}
 }
 

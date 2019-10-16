@@ -439,9 +439,13 @@ function brushSizeBtnClicked(e)
 
 function showBackgroundSelectionModal()
 {
-	backgroundSelectionModal.style.left = (window.innerWidth / 4) + "px";
-	backgroundSelectionModal.style.top = (window.innerHeight / 4) + "px";
 	backgroundSelectionModal.style.display = "block";
+	var rect = backgroundSelectionModal.getBoundingClientRect();
+	var left = (window.innerWidth / 2) - (rect.width / 2);
+	var top = (window.innerHeight / 2) - (rect.height / 2);
+
+	backgroundSelectionModal.style.left = left + "px";
+	backgroundSelectionModal.style.top = top + "px";
 
 	document.querySelectorAll(".hide-on-drop").forEach(item =>
 	{
@@ -458,6 +462,7 @@ function showBackgroundSelectionModal()
 function hideBackgroundSelectionModal()
 {
 	backgroundSelectionModal.style.display = "none";
+	document.querySelector("#image-file-input").value = "";
 }
 
 function addCanvasBackgroundImage()
@@ -478,39 +483,41 @@ function imageDraggedOver(e)
 	e.dataTransfer.dropEffect = 'copy';
 }
 
+// load image from given file and display in preview area
+function loadBackgroundImage(file)
+{
+	if (file.type.match(/image*/))
+	{
+		var reader = new FileReader();
+		reader.onload = (readerEv) =>
+		{
+			var imagePreview = document.querySelector("#bg-image-preview");
+			if (!imagePreview)
+			{
+				imagePreview = document.createElement("img");
+				imagePreview.id = "bg-image-preview";
+				imagePreview.style.width = "100%";
+			}
+
+			imagePreview.src = readerEv.target.result;
+			backgroundDropArea.style.borderWidth = "0px";
+			backgroundDropArea.appendChild(imagePreview);
+		};
+
+		reader.readAsDataURL(file);
+	}
+}
+
 // image dropped into add image modal
 function imageDropped(e)
 {
 	e.preventDefault();
-	var files = e.dataTransfer.files;
-	for (var i = 0; i < files.length; i++)
+	loadBackgroundImage(e.dataTransfer.files[0]);
+
+	document.querySelectorAll(".hide-on-drop").forEach(item =>
 	{
-		var file = files[i];
-		if (file.type.match(/image*/))
-		{
-			var reader = new FileReader();
-			reader.onload = (readerEv) =>
-			{
-				var imagePreview = document.querySelector("#bg-image-preview");
-				if (!imagePreview)
-				{
-					imagePreview = document.createElement("img");
-					imagePreview.id = "bg-image-preview";
-					imagePreview.style.width = "100%";
-				}
-
-				imagePreview.src = readerEv.target.result;
-				backgroundDropArea.style.borderWidth = "0px";
-				backgroundDropArea.appendChild(imagePreview);
-				document.querySelectorAll(".hide-on-drop").forEach(item =>
-				{
-					item.style.display = "none";
-				});
-			};
-
-			reader.readAsDataURL(file);
-		}
-	}
+		item.style.display = "none";
+	});
 }
 
 function setLocalBackgroundColor(color)
@@ -558,6 +565,9 @@ function windowResized()
 	{
 		Slider.updatePosition(slider.querySelector(".slider-fg"), paintTool.size);
 	});
+
+	if (backgroundSelectionModal.style.display != "none" && backgroundSelectionModal.style.display != "")
+		showBackgroundSelectionModal(); // redraw to update position and size
 }
 
 // slider value changed by user
@@ -595,6 +605,16 @@ function windowMouseMoved(e)
 		sizeSliderChanged(e);
 }
 
+function imageFileInputChanged(e)
+{
+	document.querySelectorAll(".hide-on-image-input").forEach(item =>
+	{
+		item.style.display = "none";
+	});
+
+	loadBackgroundImage(e.currentTarget.files[0]);
+}
+
 window.addEventListener("load", () =>
 {
 	canvas = document.querySelector("#drawArea");
@@ -615,6 +635,7 @@ window.addEventListener("load", () =>
 	backgroundDropArea = document.querySelector(".drop-area");
 	const settingsBtn = document.querySelector("#settings");
 	const nameInput = document.querySelector(".options-panel input");
+	const imageFileInput = document.querySelector("#image-file-input");
 
 	window.addEventListener("resize", windowResized);
 	canvas.addEventListener("mousemove", canvasMouseMoved);
@@ -634,6 +655,7 @@ window.addEventListener("load", () =>
 	settingsBtn.addEventListener("click", settingsBtnClicked);
 	nameInput.addEventListener("change", userNameChanged);
 	window.addEventListener("mousemove", windowMouseMoved);
+	imageFileInput.addEventListener("change", imageFileInputChanged);
 
 	initializeSocket();
 	setCanvasSize();
