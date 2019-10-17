@@ -425,15 +425,14 @@ function brushSizeBtnClicked(e)
 	{
 		brushSizeMenu.style.visibility = "visible";
 
-		var offset = 90;
-		if (window.innerWidth < 500)
-			offset = 85;
-		if (window.innerWidth < 400)
-			offset = 65;
-		if (window.innerWidth < 300)
-			offset = 45;
+		var rect = brushSizeMenu.getBoundingClientRect();
+		var parentRect = brushSizeMenu.parentElement.getBoundingClientRect();
+		var posX = parentRect.left + (parentRect.width / 2) - (rect.width / 2);
 
-		brushSizeMenu.style.left = (e.currentTarget.offsetLeft - offset) + "px";
+		if (posX < 0)
+			posX = 0;
+
+		brushSizeMenu.style.left = posX + "px";
 	}
 }
 
@@ -537,10 +536,15 @@ function settingsBtnClicked(e)
 	} else
 	{
 		panel.style.visibility = "visible";
-		var parent = panel.parentElement;
-		var left = window.innerWidth - panel.clientWidth;
-		left -= parent.clientWidth / 4;
-		panel.style.left = left + "px";
+
+		var rect = panel.getBoundingClientRect();
+		var parentRect = panel.parentElement.getBoundingClientRect();
+		var posX = parentRect.left + (parentRect.width / 2) - (rect.width / 2);
+
+		if (posX + rect.width > window.innerWidth)
+			posX = window.innerWidth - rect.width;
+
+		panel.style.left = posX + "px";
 	}
 }
 
