@@ -4,17 +4,8 @@ class Slider
 {
 	static init(slider)
 	{
-		var html = '\
-		<div class="slider-fg">\
-			<span></span><span></span>\
-			<div class="slider-bg"></div>\
-		</div>';
-
-		slider.insertAdjacentHTML("beforeend", html);
-
 		var name = slider.dataset.name;
 		var value = slider.dataset.value;
-
 		var sliderFg = slider.querySelector(".slider-fg");
 		sliderFg.querySelector("span:nth-child(1)").innerHTML = name;
 		this.updatePosition(sliderFg, value);

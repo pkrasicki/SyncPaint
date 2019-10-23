@@ -114,22 +114,8 @@ function paintColorChanged(e)
 	updateBrushPreview();
 }
 
-function createToolbar(toolbar)
-{
-	fetch("toolbar.html")
-	.then(res => res.text())
-	.then(html =>
-	{
-		toolbar.insertAdjacentHTML("beforeend", html);
-		addToolbarIcons(toolbar);
-	})
-	.catch(err =>
-	{
-		console.error("ERROR: can't load toolbar: ", err);
-	});
-}
-
-function addToolbarIcons(toolbar)
+// makes toolbar icons clickable
+function initToolbarIcons(toolbar)
 {
 	var isDefaultToolFound = false;
 	const toolIcons = toolbar.querySelectorAll("ul > li i.btn-tool");
@@ -710,7 +696,7 @@ window.addEventListener("load", () =>
 
 	initializeSocket();
 	setCanvasSize();
-	createToolbar(toolbar);
+	initToolbarIcons(toolbar);
 	createBrushPreview();
 	setLocalBackgroundColor("white"); // make background white by default
 	initSliders();

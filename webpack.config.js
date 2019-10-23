@@ -3,9 +3,13 @@ const MiniCssExtract = require("mini-css-extract-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const OptimizeCssAssetsPlugin = require("optimize-css-assets-webpack-plugin");
 const TerserPlugin = require("terser-webpack-plugin");
+const fs = require("fs");
 
 const META_VIEWPORT = "width=device-width, initial-scale=1.0";
 const META_DESCRIPTION = "synchronized group drawing";
+const toolbar = fs.readFileSync("./src/frontend/toolbar.html");
+const backgroundModal = fs.readFileSync("./src/frontend/background-modal.html");
+const slider = fs.readFileSync("./src/frontend/slider.html");
 
 module.exports =
 {
@@ -85,7 +89,6 @@ module.exports =
 			name: "[name].[ext]"
 		}),
 		new HtmlWebpackPlugin({
-			title: "SyncPaint - Synchronized Drawing",
 			filename: "index.html",
 			template: "./src/frontend/index.html",
 			meta: {
@@ -94,18 +97,15 @@ module.exports =
 			}
 		}),
 		new HtmlWebpackPlugin({
-			title: "SyncPaint - Drawing Room",
 			filename: "draw.html",
 			template: "./src/frontend/draw.html",
 			meta: {
 				viewport: META_VIEWPORT,
 				description: META_DESCRIPTION
-			}
-		}),
-		new HtmlWebpackPlugin({
-			filename: "toolbar.html",
-			template: "./src/frontend/toolbar.html",
-			inject: false
+			},
+			toolbar: toolbar,
+			backgroundModal: backgroundModal,
+			slider: slider
 		})
 	]
 }
