@@ -31,6 +31,7 @@ var drawingEndPos = {x: 0, y: 0};
 var isSavingCanvas = false;
 var sliderMousePressed = false;
 var lastSelectedSlider;
+let touchJustEnded = false;
 
 // set canvas size based on window dimensions
 function setCanvasSize()
@@ -192,6 +193,7 @@ function roomUrlClicked(e)
 	e.currentTarget.removeChild(textArea);
 }
 
+// handles mouse move and touch move
 function canvasMouseMoved(e)
 {
 	brushBoundsPreview.style.left = (e.clientX - brushBoundsPreview.offsetWidth / 2) + "px";
@@ -199,40 +201,95 @@ function canvasMouseMoved(e)
 
 	if (isDrawing)
 	{
-		drawingEndPos.x = e.offsetX;
-		drawingEndPos.y = e.offsetY;
+		let posX, posY;
+		let numTouches;
+		let rect;
 
-		var drawingData = new DrawingData(drawingStartPos, drawingEndPos, paintTool);
-		draw(drawingData);
-		socket.emit("draw", drawingData);
+		if (e.type == "touchmove")
+		{
+			numTouches = e.touches.length;
+			rect = e.target.getBoundingClientRect();
+		} else
+		{
+			posX = e.offsetX;
+			posY = e.offsetY;
+			numTouches = 1;
+		}
 
-		drawingStartPos.x = e.offsetX;
-		drawingStartPos.y = e.offsetY;
+		for (let i = 0; i < numTouches; i++)
+		{
+			if (e.type == "touchmove")
+			{
+				posX = e.touches[i].pageX - rect.left;
+				posY = e.touches[i].pageY - rect.top;
+			}
+
+			drawingEndPos.x = posX;
+			drawingEndPos.y = posY;
+
+			var drawingData = new DrawingData(drawingStartPos, drawingEndPos, paintTool);
+			draw(drawingData);
+			socket.emit("draw", drawingData);
+
+			drawingStartPos.x = posX;
+			drawingStartPos.y = posY;
+		}
 	}
 }
 
 function canvasMouseDown(e)
 {
-	var posX = e.offsetX;
-	var posY = e.offsetY;
-	drawingStartPos.x = posX;
-	drawingStartPos.y = posY;
-	drawingEndPos.x = posX;
-	drawingEndPos.y = posY;
+	// return if this was triggered by automatic mousedown event after touch start
+	if (touchJustEnded)
+		return;
 
-	if (paintTool instanceof Text == false)
+	let posX = e.offsetX;
+	let posY = e.offsetY;
+
+	if (e.type == "touchstart")
 	{
-		isDrawing = true;
-		var drawingData = new DrawingData(drawingStartPos, drawingEndPos, paintTool);
-		draw(drawingData);
-		socket.emit("draw", drawingData);
+		posX = e.touches[i].pageX - rect.left;
+		posY = e.touches[i].pageY - rect.top;
+	}
+
+	drawSinglePoint(posX, posY);
+}
+
+function canvasTouchStart(e)
+{
+	let posX, posY;
+	let numTouches = e.touches.length;
+	let rect = e.target.getBoundingClientRect();
+
+	for (let i = 0; i < numTouches; i++)
+	{
+		if (e.type == "touchstart")
+		{
+			posX = e.touches[i].pageX - rect.left;
+			posY = e.touches[i].pageY - rect.top;
+		}
+
+		drawSinglePoint(posX, posY);
 	}
 }
 
-function canvasMouseUp()
+// handles mouse up and touch end
+function canvasMouseUp(e)
 {
+	if (e.type == "mouseup" && touchJustEnded)
+	{
+		touchJustEnded = false;
+		return;
+	}
+
 	isDrawing = false;
 	sliderMousePressed = false;
+}
+
+function canvasTouchEnded(e)
+{
+	canvasMouseUp(e);
+	touchJustEnded = true;
 }
 
 function canvasMouseOver(e)
@@ -267,6 +324,22 @@ function draw(drawingData)
 		ctx.moveTo(drawingData.startPos.x, drawingData.startPos.y);
 		ctx.lineTo(drawingData.endPos.x, drawingData.endPos.y);
 		ctx.stroke();
+	}
+}
+
+function drawSinglePoint(posX, posY)
+{
+	drawingStartPos.x = posX;
+	drawingStartPos.y = posY;
+	drawingEndPos.x = posX;
+	drawingEndPos.y = posY;
+
+	if (paintTool instanceof Text == false)
+	{
+		isDrawing = true;
+		var drawingData = new DrawingData(drawingStartPos, drawingEndPos, paintTool);
+		draw(drawingData);
+		socket.emit("draw", drawingData);
 	}
 }
 
@@ -588,7 +661,17 @@ function windowResized()
 // slider value changed by user
 function sizeSliderChanged(e)
 {
-	var size = Slider.update(lastSelectedSlider, e.clientX);
+	let posX;
+
+	if (e.type == "touchmove")
+	{
+		posX = e.touches[0].clientX;
+	} else
+	{
+		posX = e.clientX;
+	}
+	
+	let size = Slider.update(lastSelectedSlider, posX);
 	sizeValueSpan.innerHTML = size + "px";
 	paintTool.setSize(size);
 	updateBrushPreview();
@@ -610,6 +693,18 @@ function initSliders()
 		{
 			lastSelectedSlider = e.currentTarget;
 			sliderMousePressed = true;
+		});
+
+		slider.addEventListener("touchstart", (e) =>
+		{
+			lastSelectedSlider = e.currentTarget;
+			sliderMousePressed = true;
+		});
+
+		slider.addEventListener("touchmove", (e) =>
+		{
+			if (sliderMousePressed)
+				sizeSliderChanged(e);
 		});
 	});
 }
@@ -675,13 +770,17 @@ window.addEventListener("load", () =>
 
 	window.addEventListener("resize", windowResized);
 	window.addEventListener("mouseup", canvasMouseUp);
+	window.addEventListener("touchend", canvasMouseUp);
 	window.addEventListener("mousemove", windowMouseMoved);
 	window.addEventListener("keypress", keyPressed);
 	canvas.addEventListener("mousemove", canvasMouseMoved);
+	canvas.addEventListener("touchmove", canvasMouseMoved);
 	canvas.addEventListener("mouseover", canvasMouseOver);
 	canvas.addEventListener("mouseout", canvasMouseOut);
 	canvas.addEventListener("mousedown", canvasMouseDown);
+	canvas.addEventListener("touchstart", canvasTouchStart);
 	canvas.addEventListener("mouseup", canvasMouseUp);
+	canvas.addEventListener("touchend", canvasTouchEnded);
 	roomUrlLink.addEventListener("click", roomUrlClicked);
 	saveBtn.addEventListener("click", saveBtnClicked);
 	colorPicker.addEventListener("change", paintColorChanged);
