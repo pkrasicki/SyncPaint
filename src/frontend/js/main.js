@@ -746,6 +746,13 @@ function keyPressed(e)
 	}
 }
 
+// ask user for confirmation when they try to leave the page
+function beforeWindowUnloaded(e)
+{
+	e.preventDefault();
+	e.returnValue = "";
+}
+
 window.addEventListener("load", () =>
 {
 	canvas = document.querySelector("#drawArea");
@@ -773,6 +780,7 @@ window.addEventListener("load", () =>
 	window.addEventListener("touchend", canvasMouseUp);
 	window.addEventListener("mousemove", windowMouseMoved);
 	window.addEventListener("keypress", keyPressed);
+	window.addEventListener("beforeunload", beforeWindowUnloaded);
 	canvas.addEventListener("mousemove", canvasMouseMoved);
 	canvas.addEventListener("touchmove", canvasMouseMoved);
 	canvas.addEventListener("mouseover", canvasMouseOver);
