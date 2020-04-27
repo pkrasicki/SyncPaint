@@ -8,9 +8,10 @@ import {Pencil} from "./tools/pencil";
 import {PaintRoller} from "./tools/paint-roller";
 import {Eraser} from "./tools/eraser";
 import {Text} from "./tools/text";
+import {Fill} from "./tools/fill";
 import {Notification} from "./notification/notification";
 import {NotificationSystem} from "./notification/notification-system";
-import {DrawingData} from "./drawing-data/drawing-data";
+import {DrawingData} from "./models/drawing-data";
 import {Slider} from "./slider/slider";
 
 const CANVAS_SIZE = 0.9;
@@ -107,7 +108,7 @@ function paintColorChanged(e)
 		color = e.target.value;
 	} else
 	{
-		color = e.target.style.backgroundColor;
+		color = e.target.dataset.color;
 		colorPicker.parentElement.style.backgroundColor = color;
 	}
 
@@ -164,6 +165,8 @@ function getTool(toolName, size, color)
 		return new Eraser(size, color);
 	else if (toolName == "Text")
 		return new Text(size, color);
+	else if (toolName == "Fill")
+		return new Fill(size, color);
 	else
 	{
 		console.error("wrong tool name:", toolName);
@@ -313,11 +316,15 @@ function draw(drawingData)
 	ctx.shadowBlur = drawingData.tool.blur;
 	ctx.shadowColor = drawingData.tool.color;
 
-	if (drawingData.text != "")
+	if (drawingData.text != null && drawingData.text != "")
 	{
 		ctx.font = `${drawingData.tool.size}px sans-serif`;
 		ctx.fillStyle = drawingData.tool.color;
 		ctx.fillText(drawingData.text, drawingData.startPos.x, drawingData.startPos.y);
+	} else if (drawingData.fill)
+	{
+		let fillTool = new Fill(drawingData.tool.size, drawingData.tool.color);
+		fillTool.fill(ctx, drawingData.startPos.x, drawingData.startPos.y);
 	} else
 	{
 		ctx.beginPath();
@@ -334,10 +341,16 @@ function drawSinglePoint(posX, posY)
 	drawingEndPos.x = posX;
 	drawingEndPos.y = posY;
 
-	if (paintTool instanceof Text == false)
+	if (paintTool instanceof Text == false && paintTool instanceof Fill == false) // regular brush tools
 	{
 		isDrawing = true;
-		var drawingData = new DrawingData(drawingStartPos, drawingEndPos, paintTool);
+		let drawingData = new DrawingData(drawingStartPos, drawingEndPos, paintTool);
+		draw(drawingData);
+		socket.emit("draw", drawingData);
+
+	} else if (paintTool instanceof Fill) // fill tool
+	{
+		let drawingData = new DrawingData(drawingStartPos, drawingEndPos, paintTool, null, true);
 		draw(drawingData);
 		socket.emit("draw", drawingData);
 	}
@@ -385,6 +398,10 @@ function updateBrushPreview()
 	{
 		brushBoundsPreview.style.display = "none";
 		canvas.style.cursor = "text";
+	} else if (paintTool instanceof Fill)
+	{
+		brushBoundsPreview.style.display = "none";
+		canvas.style.cursor = "crosshair";
 	} else
 	{
 		brushBoundsPreview.style.display = "initial";
@@ -403,9 +420,9 @@ function saveBtnClicked(e)
 
 	e.preventDefault();
 
-	var backgroundImage = new Image();
-	var image = new Image();
-	var currentTarget = e.currentTarget;
+	let backgroundImage = new Image();
+	let image = new Image();
+	let currentTarget = e.currentTarget;
 
 	backgroundImage.onload = () =>
 	{
@@ -414,8 +431,8 @@ function saveBtnClicked(e)
 
 	image.onload = () =>
 	{
-		var tempCanvas = document.createElement("canvas");
-		var tempCtx = tempCanvas.getContext("2d");
+		let tempCanvas = document.createElement("canvas");
+		let tempCtx = tempCanvas.getContext("2d");
 		tempCanvas.width = canvas.width;
 		tempCanvas.height = canvas.height;
 		tempCtx.drawImage(backgroundImage, 0, 0);
@@ -431,10 +448,10 @@ function saveBtnClicked(e)
 
 function updateDisplayedRoomUrl(fullRoomUrl, roomName)
 {
-	var regex = /^https?:\/\/(www\.)?/;
-	var domainName = fullRoomUrl.replace(regex, "");
+	let regex = /^https?:\/\/(www\.)?/;
+	let domainName = fullRoomUrl.replace(regex, "");
 	domainName = domainName.replace(/\/.*$/, "");
-	var displayName = `${domainName}/${roomName}`;
+	let displayName = `${domainName}/${roomName}`;
 
 	if (window.innerWidth < MEDIUM_SIZE_PX)
 		displayName = `${roomName}`;
@@ -729,19 +746,16 @@ function keyPressed(e)
 {
 	if (paintTool instanceof Text)
 	{
-		var key = e.which;
-
-		if (key == 13)
+		if (e.key == "Enter")
 		{
 			drawingStartPos.x = drawingEndPos.x;
 			drawingStartPos.y += paintTool.size;
 		} else
 		{
-			var textString = String.fromCharCode(key);
-			var drawingData = new DrawingData(drawingStartPos, drawingEndPos, paintTool, textString);
+			const drawingData = new DrawingData(drawingStartPos, drawingEndPos, paintTool, e.key);
 			draw(drawingData);
 			socket.emit("draw", drawingData);
-			drawingStartPos.x += ctx.measureText(textString).width;
+			drawingStartPos.x += ctx.measureText(e.key).width;
 		}
 	}
 }

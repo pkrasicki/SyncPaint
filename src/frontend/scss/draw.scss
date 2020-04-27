@@ -397,14 +397,14 @@ canvas
 	width: 150px;
 	padding: 0;
 	margin-left: 20px;
-	border: solid 1px $disabledColor;
+	background: $darker;
 
 	.slider-fg
 	{
 		display: flex;
 		flex-direction: row;
 		justify-content: space-between;
-		height: 20px;
+		height: 25px;
 		background: none;
 		cursor: pointer;
 	}
@@ -421,7 +421,7 @@ canvas
 	.slider-bg
 	{
 		background: $primaryColorDark;
-		height: 20px;
+		height: 25px;
 		width: 0px;
 		position: absolute;
 		pointer-events: none;
