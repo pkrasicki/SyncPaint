@@ -359,11 +359,6 @@ canvas
 		margin-bottom: 0px;
 	}
 
-	button
-	{
-		margin-right: 10px;
-	}
-
 	.drop-area
 	{
 		display: flex;
@@ -386,6 +381,17 @@ canvas
 		left: 0;
 		bottom: 15px;
 		width: 100%;
+
+		button
+		{
+			padding: 5px 10px;
+			margin-right: 10px;
+		}
+
+		button:last-child
+		{
+			margin-right: 0;
+		}
 	}
 }
 
