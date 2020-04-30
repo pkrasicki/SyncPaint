@@ -2,6 +2,10 @@ SyncPaint allows multiple users to draw on one canvas at the same time. You can 
 
 ![screenshot](screenshot.png?raw=true)
 
+## Dependencies
+- [Node.js](https://nodejs.org)
+- [Npm](https://www.npmjs.com)
+
 ## Building
 ```
 npm install
