@@ -5,16 +5,14 @@ const OptimizeCssAssetsPlugin = require("optimize-css-assets-webpack-plugin");
 const TerserPlugin = require("terser-webpack-plugin");
 const fs = require("fs");
 
-const META_VIEWPORT = "width=device-width, initial-scale=1.0";
-const META_DESCRIPTION = "synchronized group drawing";
-const toolbar = fs.readFileSync("./src/frontend/toolbar.html");
-const backgroundModal = fs.readFileSync("./src/frontend/background-modal.html");
-const slider = fs.readFileSync("./src/frontend/slider.html");
+const toolbar = fs.readFileSync("./public/toolbar.html");
+const backgroundModal = fs.readFileSync("./public/background-modal.html");
+const slider = fs.readFileSync("./public/slider.html");
 
 module.exports =
 {
 	mode: "development",
-	entry: "./src/frontend/js/main.js",
+	entry: "./public/js/main.js",
 	output:
 	{
 		path: path.resolve(__dirname, "dist"),
@@ -90,19 +88,11 @@ module.exports =
 		}),
 		new HtmlWebpackPlugin({
 			filename: "index.html",
-			template: "./src/frontend/index.html",
-			meta: {
-				viewport: META_VIEWPORT,
-				description: META_DESCRIPTION
-			}
+			template: "./public/index.html"
 		}),
 		new HtmlWebpackPlugin({
 			filename: "draw.html",
-			template: "./src/frontend/draw.html",
-			meta: {
-				viewport: META_VIEWPORT,
-				description: META_DESCRIPTION
-			},
+			template: "./public/draw.html",
 			toolbar: toolbar,
 			backgroundModal: backgroundModal,
 			slider: slider
