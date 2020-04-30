@@ -23,24 +23,26 @@ const DEFAULT_BRUSH_SIZE = 20;
 const DEFAULT_PAINT_COLOR = "#000000";
 const DEFAULT_PAINT_TOOL = "Brush";
 const notificationSystem = new NotificationSystem();
-var canvas, socket, ctx, brushBoundsPreview, bgCtx, colorPicker, backgroundSelectionModal,
-	sizeValueSpan, brushSizeMenu, backgroundDropArea, roomUrlLink;
-var isDrawing = false;
-var paintTool = getTool(DEFAULT_PAINT_TOOL, DEFAULT_BRUSH_SIZE, DEFAULT_PAINT_COLOR);
-var drawingStartPos = {x: 0, y: 0};
-var drawingEndPos = {x: 0, y: 0};
-var isSavingCanvas = false;
-var sliderMousePressed = false;
-var lastSelectedSlider;
+let canvas, socket, ctx, bgCtx, colorPicker, backgroundSelectionModal, sizeValueSpan,
+	brushSizeMenu, backgroundDropArea, roomUrlLink;
+let isDrawing = false;
+let paintTool = getTool(DEFAULT_PAINT_TOOL, DEFAULT_BRUSH_SIZE, DEFAULT_PAINT_COLOR);
+let drawingStartPos = {x: 0, y: 0};
+let drawingEndPos = {x: 0, y: 0};
+let isSavingCanvas = false;
+let sliderMousePressed = false;
+let lastSelectedSlider;
 let touchJustEnded = false;
+let isAdmin = false;
+let isFirstJoin = true;
 
 // set canvas size based on window dimensions
 function setCanvasSize()
 {
 	const canvasData = canvas.toDataURL("image/png");
 	const bgData = bgCanvas.toDataURL("image/png");
-	var newHeight = window.innerHeight * CANVAS_SIZE;
-	var newWidth = window.innerWidth * CANVAS_SIZE;
+	let newHeight = window.innerHeight * CANVAS_SIZE;
+	let newWidth = window.innerWidth * CANVAS_SIZE;
 
 	if (window.innerWidth < SMALL_SIZE_PX)
 		newWidth = window.innerWidth * CANVAS_SIZE_SMALL;
@@ -63,7 +65,7 @@ function setCanvasSize()
 // load image from canvasURL
 function loadCanvasData(ctx, canvasData)
 {
-	var canvasImage = new Image();
+	let canvasImage = new Image();
 	canvasImage.onload = () =>
 	{
 		ctx.drawImage(canvasImage, 0, 0);
@@ -81,7 +83,7 @@ function paintToolSwitch(e)
 	if (type == "BackgroundImage")
 		return;
 
-	var previouslySelected = document.querySelector(".selected");
+	let previouslySelected = document.querySelector(".selected");
 
 	if (previouslySelected)
 		previouslySelected.classList.remove("selected");
@@ -199,8 +201,9 @@ function roomUrlClicked(e)
 // handles mouse move and touch move
 function canvasMouseMoved(e)
 {
-	brushBoundsPreview.style.left = (e.clientX - brushBoundsPreview.offsetWidth / 2) + "px";
-	brushBoundsPreview.style.top = (e.clientY - brushBoundsPreview.offsetHeight / 2) + "px";
+	const brushPreview = document.querySelector(".brush-preview");
+	brushPreview.style.left = (e.clientX - brushPreview.offsetWidth / 2) + "px";
+	brushPreview.style.top = (e.clientY - brushPreview.offsetHeight / 2) + "px";
 
 	if (isDrawing)
 	{
@@ -297,14 +300,15 @@ function canvasTouchEnded(e)
 
 function canvasMouseOver(e)
 {
-	brushBoundsPreview.style.visibility = "visible";
-	brushBoundsPreview.style.left = (e.clientX - brushBoundsPreview.offsetWidth / 2) + "px";
-	brushBoundsPreview.style.top = (e.clientY - brushBoundsPreview.offsetHeight / 2) + "px";
+	const brushPreview = document.querySelector(".brush-preview");
+	brushPreview.style.visibility = "visible";
+	brushPreview.style.left = (e.clientX - brushPreview.offsetWidth / 2) + "px";
+	brushPreview.style.top = (e.clientY - brushPreview.offsetHeight / 2) + "px";
 }
 
 function canvasMouseOut()
 {
-	brushBoundsPreview.style.visibility = "hidden";
+	document.querySelector(".brush-preview").style.visibility = "hidden";
 }
 
 function draw(drawingData)
@@ -356,16 +360,12 @@ function drawSinglePoint(posX, posY)
 	}
 }
 
-// a small element that follows mouse cursor. It visualizes the brush size and shape
+// an element that follows mouse cursor. It visualizes the brush size and shape
 function createBrushPreview()
 {
-	brushBoundsPreview = document.createElement("div");
-	brushBoundsPreview.classList.add("brush-preview");
-	brushBoundsPreview.classList.add("brush-preview-follower");
-	brushBoundsPreview.dataset.brushBoundsPreview = true;
-
-	document.body.appendChild(brushBoundsPreview);
-
+	const brushPreview = document.createElement("div");
+	brushPreview.classList.add("brush-preview");
+	document.body.appendChild(brushPreview);
 	updateBrushPreview();
 }
 
@@ -376,35 +376,29 @@ function updateBrushPreview()
 	const color = paintTool.color;
 	const style = paintTool.style;
 
-	document.querySelectorAll(".brush-preview").forEach(item =>
-	{
-		if(item.dataset.brushBoundsPreview)
-		{
-			item.style.width = (size + blur / 2) + "px";
-			item.style.height = (size + blur / 2) + "px";
-		} else
-		{
-			item.style.background = color;
-			item.style.boxShadow = `0 0 ${blur}px ${color}`;
-		}
+	const colorPreview = document.querySelector(".color-preview");
+	colorPreview.style.background = color;
 
-		if (style == "round")
-			item.style.borderRadius = "50%";
-		else
-			item.style.borderRadius = "0";
-	});
+	const brushPreview = document.querySelector(".brush-preview");
+	brushPreview.style.width = (size + blur / 2) + "px";
+	brushPreview.style.height = (size + blur / 2) + "px";
+
+	if (style == "round")
+		brushPreview.style.borderRadius = "50%";
+	else
+		brushPreview.style.borderRadius = "0";
 
 	if (paintTool instanceof Text)
 	{
-		brushBoundsPreview.style.display = "none";
+		brushPreview.style.display = "none";
 		canvas.style.cursor = "text";
 	} else if (paintTool instanceof Fill)
 	{
-		brushBoundsPreview.style.display = "none";
+		brushPreview.style.display = "none";
 		canvas.style.cursor = "crosshair";
 	} else
 	{
-		brushBoundsPreview.style.display = "initial";
+		brushPreview.style.display = "initial";
 		canvas.style.cursor = "default";
 	}
 }
@@ -466,12 +460,18 @@ function initializeSocket()
 	{
 		socket = io();
 
-		socket.on("receiveRoomURL", (fullRoomUrl, roomName, userName) =>
+		socket.on("receiveRoomURL", (fullRoomUrl, roomName, userName, numUsers) =>
 		{
 			updateDisplayedRoomUrl(fullRoomUrl, roomName);
 			roomUrlLink.href = fullRoomUrl;
 			roomUrlLink.dataset.clipboard = fullRoomUrl;
 			document.querySelector(".options-panel input").value = userName;
+
+			// if it's the first user in a room set their foreground to white instead of default transparent
+			if (numUsers <= 1 && isFirstJoin)
+				setLocalForegroundColor("white");
+
+			isFirstJoin = false;
 		});
 
 		socket.on("userJoin", userName =>
@@ -509,6 +509,11 @@ function initializeSocket()
 			loadCanvasData(bgCtx, bgCanvasData);
 		});
 
+		socket.on("setAdmin", value =>
+		{
+			isAdmin = value;
+		});
+
 	} catch (error)
 	{
 		console.error("ERROR: can't connect to server");
@@ -540,9 +545,10 @@ function brushSizeBtnClicked(e)
 function showBackgroundSelectionModal()
 {
 	backgroundSelectionModal.style.display = "block";
-	var rect = backgroundSelectionModal.getBoundingClientRect();
-	var left = (window.innerWidth / 2) - (rect.width / 2);
-	var top = (window.innerHeight / 2) - (rect.height / 2);
+	const rect = backgroundSelectionModal.getBoundingClientRect();
+	const navMenuRect = document.querySelector(".menu-draw").getBoundingClientRect();
+	const left = (window.innerWidth / 2) - (rect.width / 2);
+	const top = (window.innerHeight / 2) - (rect.height / 2) - navMenuRect.height;
 
 	backgroundSelectionModal.style.left = left + "px";
 	backgroundSelectionModal.style.top = top + "px";
@@ -554,7 +560,7 @@ function showBackgroundSelectionModal()
 	backgroundDropArea.style.borderWidth = "1px";
 	document.querySelector(".drop-area p").style.display = "block";
 
-	var imagePreview = document.querySelector("#bg-image-preview");
+	const imagePreview = document.querySelector("#bg-image-preview");
 	if (imagePreview)
 		backgroundDropArea.removeChild(imagePreview);
 }
@@ -620,10 +626,10 @@ function imageDropped(e)
 	});
 }
 
-function setLocalBackgroundColor(color)
+function setLocalForegroundColor(color)
 {
-	bgCtx.fillStyle = color;
-	bgCtx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
+	ctx.fillStyle = color;
+	ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
 function settingsBtnClicked(e)
@@ -819,6 +825,5 @@ window.addEventListener("load", () =>
 	setCanvasSize();
 	initToolbarIcons(toolbar);
 	createBrushPreview();
-	setLocalBackgroundColor("white"); // make background white by default
 	initSliders();
 });

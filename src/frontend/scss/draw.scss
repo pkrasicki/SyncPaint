@@ -38,7 +38,7 @@ textarea.clibpoard
 		color: $light;
 		&:hover
 		{
-			color: white;
+			color: $lightHover;
 		}
 	}
 }
@@ -86,10 +86,14 @@ textarea.clibpoard
 		align-items: center;
 	}
 
-	.brush-preview
+	.color-preview
 	{
-		width: 20px;
-		height: 20px;
+		width: 25px;
+		height: 25px;
+		border-left: solid 1px rgba(255, 255, 255, 0.3);
+		border-top: solid 1px rgba(255, 255, 255, 0.3);
+		border-bottom: solid 1px rgba(255, 255, 255, 0.1);
+		border-right: solid 1px rgba(255, 255, 255, 0.1);
 
 		&:hover
 		{
@@ -126,7 +130,6 @@ textarea.clibpoard
 
 	#room-url
 	{
-		@extend .draw-btn-alt;
 		max-width: 100%;
 		white-space: nowrap;
 		overflow: hidden;
@@ -159,6 +162,7 @@ main
 	bottom:0;
 	left:0;
 	right:0;
+	background: darken($dark, 7);
 }
 
 canvas
@@ -171,6 +175,11 @@ canvas
 	position: absolute;
 }
 
+#bgCanvas
+{
+	background: url("../img/checkerboard.png"); // this is visible when background layer is empty
+}
+
 #drawArea
 {
 	z-index: 1;
@@ -179,38 +188,42 @@ canvas
 .toolbar
 {
 	min-width: 40px;
+	max-width: 64px;
 	height: 100%;
 	background-color: $dark;
 	padding: 0;
 	margin: 0;
 	text-align: center;
-	color: white;
+	color: $light;
 	font-size: 26px;
 	grid-column: 1;
 
 	.separator
 	{
-		color: white;
-		border: solid 1px transparent;
+		color: rgba(255, 255, 255, 0.5);
 		padding: 6px 4px 10px 4px;
-		border-bottom: solid 1px white;
+		border: solid 1px transparent;
+		border-bottom: solid 1px rgba(255, 255, 255, 0.5);
 		margin-bottom: 10px;
+	}
+
+	.color-separator
+	{
+		margin-top: 20px;
 	}
 
 	.btn-tool
 	{
 		display: block;
-		color: $light;
 		padding: 6px;
 		border-radius: 5px;
 		margin: 0 auto;
 		margin-bottom: 5px;
+		cursor: pointer;
 
 		&:hover
 		{
-			cursor: pointer;
-			border-color: white;
-			color: white;
+			color: $lightHover;
 		}
 	}
 
@@ -230,7 +243,7 @@ canvas
 		height: 30px;
 		border-radius: 10px;
 		padding: 0;
-		margin-bottom: 7px;
+		margin-bottom: 10px;
 
 		&:hover
 		{
@@ -241,13 +254,13 @@ canvas
 
 	.selected
 	{
-		color: $linkColorLight;
+		color: $primaryColorLight;
 		padding-left: 0;
 		padding-right: 0;
 		
 		&:hover
 		{
-			color: $primaryColorLight;
+			color: $linkColorLight;
 		}
 	}
 
@@ -278,7 +291,7 @@ canvas
 .notification
 {
 	background: rgba(0,0,0,0.6);
-	color: white;
+	color: $light;
 	padding: 20px 7px 20px 7px;
 	text-align: center;
 	position: absolute;
@@ -381,7 +394,7 @@ canvas
 	@extend .modal;
 }
 
-.brush-preview-follower
+.brush-preview
 {
 	position: absolute;
 	pointer-events: none;
@@ -530,9 +543,28 @@ canvas
 	}
 }
 
+@media(max-width: 355px)
+{
+	.url-container > span
+	{
+		display: none;
+	}
+
+	.room
+	{
+		flex: none;
+	}
+
+	.url-icon
+	{
+		position: relative;
+		top: 2px;
+	}
+}
+
 @media(min-width: 480px)
 {
-	.brush-properties-container .brush-preview
+	.brush-properties-container .color-preview
 	{
 		margin-left: 40px;
 	}

@@ -30,21 +30,16 @@ a
 .draw-btn
 {
 	@extend .btn;
-	padding: 10px;
+	padding: 10px 20px;
 	font-size: $btnFontSize;
-
-	&:hover
-	{
-		background-color: $primaryColor;
-		box-shadow: 0px 0px 3px $dark;
-	}
+	box-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
 }
 
 .welcome
 {
 	background: url(../img/bg.png);
 	background-size: cover;
-	background-position: center;
+	background-repeat: no-repeat;
 	height: 50vh;
 	padding: 50px;
 	text-align: center;
@@ -54,8 +49,8 @@ a
 		margin: 0;
 		text-align: center;
 		margin-bottom: 35vh;
-		color: $dark;
-		text-shadow: 0 0 3px white;
+		color: rgba(0, 0, 0, 0.8);
+		text-shadow: 0 0 3px $light;
 		font-size: 42px;
 	}
 }
@@ -68,6 +63,11 @@ a
 	a
 	{
 		color: $primaryColorDark;
+
+		&:hover
+		{
+			color: $primaryColor;
+		}
 	}
 }
 
@@ -76,8 +76,8 @@ a
 	background: url(../img/syncpaint-link.png);
 	background-position: center;
 	background-size: cover;
-	width: 400px;
-	height: 50px;
+	width: 263px;
+	height: 38px;
 	margin: 0 auto;
 }
 
@@ -139,6 +139,11 @@ footer
 	a
 	{
 		color: $primaryColorLight;
+
+		&:hover
+		{
+			color: $linkColorLight;
+		}
 	}
 
 	p

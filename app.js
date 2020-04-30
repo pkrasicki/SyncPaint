@@ -5,13 +5,13 @@ const io = require("socket.io")(http);
 const path = require("path");
 
 const PORT = process.env.PORT || 3000;
-var users = [];
+let users = [];
 
 app.use(express.static("./dist"));
 
 function generateRandomString(length, chars, prefix="")
 {
-	var str = "";
+	let str = "";
 
 	for (var i = 0; i < length; i++)
 	{
@@ -34,7 +34,7 @@ function generateUniqueUserName()
 	const userNames = users.map(user => user.name);
 	const nameLength = 6;
 	const chars = "1234567890";
-	var name;
+	let name;
 
 	do
 	{
@@ -46,17 +46,17 @@ function generateUniqueUserName()
 
 function getRoomNameFromUrl(url)
 {
-	var splitArray = url.split("/");
+	const splitArray = url.split("/");
 	return splitArray[splitArray.length - 1];
 }
 
 function changeUserName(socketId, newUserName)
 {
-	for (var i = 0; i < users.length; i++)
+	for (let i = 0; i < users.length; i++)
 	{
 		if (users[i].id == socketId)
 		{
-			users[i].name = newUserName
+			users[i].name = newUserName;
 			break;
 		}
 	}
@@ -64,11 +64,11 @@ function changeUserName(socketId, newUserName)
 
 function removeUserName(socketId)
 {
-	for (var i = 0; i < users.length; i++)
+	for (let i = 0; i < users.length; i++)
 	{
 		if (users[i].id == socketId)
 		{
-			var name = users[i].name;
+			const name = users[i].name;
 			users.splice(i, 1);
 			return name;
 		}
@@ -79,11 +79,11 @@ function getUserNameFromCookie(cookie)
 {
 	if (cookie)
 	{
-		var splitArray = cookie.split(/;/);
-		for (var i = 0; i < splitArray.length; i++)
+		const splitArray = cookie.split(/;/);
+		for (let i = 0; i < splitArray.length; i++)
 		{
-			var value = splitArray[i].replace(/^[^=]*=/, "");
-			var key = splitArray[i].replace(/=.*$/, "").trim();
+			const value = splitArray[i].replace(/^[^=]*=/, "");
+			const key = splitArray[i].replace(/=.*$/, "").trim();
 
 			if (key == "userName")
 				return value;
@@ -91,6 +91,18 @@ function getUserNameFromCookie(cookie)
 	}
 
 	return "";
+}
+
+function isAdmin(roomName, userId)
+{
+	return io.sockets.adapter.rooms[roomName].adminId &&
+		io.sockets.adapter.rooms[roomName].adminId == userId;
+}
+
+function makeAdmin(socket, roomName, userId)
+{
+	io.sockets.adapter.rooms[roomName].adminId = userId;
+	socket.emit("setAdmin", true);
 }
 
 app.get("/d", (req, res) =>
@@ -111,21 +123,21 @@ app.get("/:id", (req, res) =>
 io.on("connection", socket =>
 {
 	const roomName = getRoomNameFromUrl(socket.handshake.headers.referer);
-	var userName = getUserNameFromCookie(socket.handshake.headers.cookie);
+	let userName = getUserNameFromCookie(socket.handshake.headers.cookie);
 
 	if (userName == "")
 		userName = generateUniqueUserName();
 
 	socket.join(roomName);
 	users.push({ id: socket.id, name: userName });
-	socket.emit("receiveRoomURL", socket.handshake.headers.referer, roomName, userName)
+
+	const numUsers = io.sockets.adapter.rooms[roomName].length;
+	socket.emit("receiveRoomURL", socket.handshake.headers.referer, roomName, userName, numUsers);
 	socket.broadcast.to(roomName).emit("userJoin", userName);
 
-	var numUsers = io.sockets.adapter.rooms[roomName].length;
-	if (numUsers <= 1)
+	if (numUsers <= 1) // this is the first user in this room
 	{
-		// make him admin
-		io.sockets.adapter.rooms[roomName].adminId = socket.id;
+		makeAdmin(socket, roomName, socket.id);
 	} else
 	{
 		// ask for current canvas
@@ -185,13 +197,13 @@ io.on("connection", socket =>
 
 	socket.on("disconnect", () =>
 	{
-		var userName = removeUserName(socket.id);
+		const userName = removeUserName(socket.id);
 		io.sockets.in(roomName).emit("userLeave", userName);
 
 		// remove pending canvas request
 		if (io.sockets.adapter.rooms[roomName] && io.sockets.adapter.rooms[roomName].requesterIds)
 		{
-			var index = io.sockets.adapter.rooms[roomName].requesterIds.indexOf(socket.id);
+			const index = io.sockets.adapter.rooms[roomName].requesterIds.indexOf(socket.id);
 			if (index > -1)
 			{
 				io.sockets.adapter.rooms[roomName].requesterIds.splice(index, 1);
@@ -201,7 +213,7 @@ io.on("connection", socket =>
 		// remove pending background canvas request
 		if (io.sockets.adapter.rooms[roomName] && io.sockets.adapter.rooms[roomName].bgRequesterIds)
 		{
-			var index = io.sockets.adapter.rooms[roomName].bgRequesterIds.indexOf(socket.id);
+			const index = io.sockets.adapter.rooms[roomName].bgRequesterIds.indexOf(socket.id);
 			if (index > -1)
 			{
 				io.sockets.adapter.rooms[roomName].bgRequesterIds.splice(index, 1);
@@ -211,13 +223,11 @@ io.on("connection", socket =>
 		if (io.sockets.adapter.rooms[roomName] && io.sockets.adapter.rooms[roomName].length > 0)
 		{
 			// if user is admin
-			if (io.sockets.adapter.rooms[roomName].adminId
-				&& io.sockets.adapter.rooms[roomName].adminId == socket.id)
+			if (isAdmin(roomName, socket.id))
 			{
 				// make someone else admin
-				var keys = Object.keys(io.sockets.adapter.rooms[roomName].sockets);
-				io.sockets.adapter.rooms[roomName].adminId = keys[0];
-				// TODO update clients UI to show who is current admin
+				const keys = Object.keys(io.sockets.adapter.rooms[roomName].sockets);
+				makeAdmin(socket, roomName, keys[0]);
 			}
 		}
 	});
