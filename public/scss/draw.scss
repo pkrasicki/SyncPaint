@@ -56,21 +56,44 @@ textarea.clibpoard
 	background: $dark;
 	color: $light;
 	width: 180px;
-	height: 70px;
 	border: solid 1px $darker;
 	border-radius: 5px;
 	position: absolute;
 	z-index: 2;
-	top: 42px;
+	top: 45px;
 	visibility: hidden;
-	padding: 10px;
+	padding: 15px;
+	display: flex;
+	flex-direction: column;
 
 	input
 	{
-		font-size: 12px;
-		padding: 0 0;
+		padding: 0px;
 		margin-top: 5px;
-		width: 80%;
+	}
+
+	.canvas-size
+	{
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		grid-gap: 15px;
+		margin-bottom: 20px;
+
+		input
+		{
+			width: 80%;
+			padding: 0;
+		}
+	}
+
+	.admin-settings
+	{
+		margin-top: 10px;
+	}
+
+	.admin-settings button
+	{
+		width: 100%;
 	}
 }
 
@@ -155,8 +178,8 @@ textarea.clibpoard
 
 main
 {
-	display: grid;
-	grid-template-columns: 5% 90%;
+	display: flex;
+	flex-direction: row;
 	position: absolute;
 	top: 39px;
 	bottom:0;
@@ -165,13 +188,19 @@ main
 	background: darken($dark, 7);
 }
 
+.canvas-layers
+{
+	position: relative;
+	flex: 1;
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	align-items: center;
+	overflow: auto;
+}
+
 canvas
 {
-	border: solid 1px black;
-	justify-self: center;
-	align-self: center;
-	grid-column: 2;
-	border: solid 1px black;
 	position: absolute;
 }
 
@@ -187,11 +216,9 @@ canvas
 
 .toolbar
 {
-	min-width: 40px;
-	max-width: 64px;
 	height: 100%;
 	background-color: $dark;
-	padding: 0;
+	padding: 0 10px;
 	margin: 0;
 	text-align: center;
 	color: $light;
@@ -476,6 +503,11 @@ canvas
 	{
 		width: 65vw;
 	}
+
+	.toolbar
+	{
+		padding: 0 5px;
+	}
 }
 
 @media(max-width: 640px)
@@ -487,7 +519,7 @@ canvas
 
 	.options-panel
 	{
-		padding: 5px 0;
+		padding: 5px;
 	}
 }
 
@@ -505,11 +537,6 @@ canvas
 		padding: 10px 5px 10px 5px;
 	}
 
-	main
-	{
-		grid-gap: 20px;
-	}
-
 	.options-container
 	{
 		padding-left: 10px;
@@ -518,11 +545,6 @@ canvas
 	.options-panel
 	{
 		width: 150px;
-		height: 60px;
-		input
-		{
-			width: 60%;
-		}
 	}
 
 	.modal h2
@@ -546,6 +568,11 @@ canvas
 	.options-panel
 	{
 		width: 130px;
+	}
+
+	.toolbar
+	{
+		padding: 0;
 	}
 }
 

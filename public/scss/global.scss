@@ -66,13 +66,39 @@ $warningColorDark: rgb(192, 99, 37);
 	border: solid 1px transparent;
 	cursor: pointer;
 	outline: none;
-	font-size: 18px;
 
 	&:hover
 	{
 		background-color: $primaryColorLight;
 		outline: none;
 		color: $lightHover;
+	}
+}
+
+.btn[disabled]
+{
+	background-color: transparent;
+	color: rgba(255, 255, 255, 0.5);
+	border-color: rgba(255, 255, 255, 0.5);
+	cursor: inherit;
+
+	&:hover
+	{
+		background-color: inherit;
+		color: rgba(255, 255, 255, 0.5);
+		border-color: rgba(255, 255, 255, 0.5);
+	}
+}
+
+.btn-alt
+{
+	@extend .btn;
+	background-color: transparent;
+	border: solid 1px $light;
+
+	&:hover
+	{
+		border-color: transparent;
 	}
 }
 
@@ -109,4 +135,15 @@ $warningColorDark: rgb(192, 99, 37);
 	{
 		border-color: $linkColorLight;
 	}
+}
+
+input, button
+{
+	font-family: inherit;
+	font-size: inherit;
+}
+
+.hidden
+{
+	display: none !important;
 }

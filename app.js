@@ -46,6 +46,9 @@ function generateUniqueUserName()
 
 function getRoomNameFromUrl(url)
 {
+	if (url == null) // it is somehow possible to receive no url
+		return "unnamed";
+
 	const splitArray = url.split("/");
 	return splitArray[splitArray.length - 1];
 }
@@ -93,16 +96,16 @@ function getUserNameFromCookie(cookie)
 	return "";
 }
 
-function isAdmin(roomName, userId)
+function isAdmin(roomName, socketId)
 {
 	return io.sockets.adapter.rooms[roomName].adminId &&
-		io.sockets.adapter.rooms[roomName].adminId == userId;
+		io.sockets.adapter.rooms[roomName].adminId == socketId;
 }
 
-function makeAdmin(socket, roomName, userId)
+function makeAdmin(roomName, socketId)
 {
-	io.sockets.adapter.rooms[roomName].adminId = userId;
-	socket.emit("setAdmin", true);
+	io.sockets.adapter.rooms[roomName].adminId = socketId;
+	io.to(socketId).emit("setAdmin", true);
 }
 
 app.get("/d", (req, res) =>
@@ -122,7 +125,8 @@ app.get("/:id", (req, res) =>
 
 io.on("connection", socket =>
 {
-	const roomName = getRoomNameFromUrl(socket.handshake.headers.referer);
+	const url = socket.handshake.headers.referer;
+	const roomName = getRoomNameFromUrl(url);
 	let userName = getUserNameFromCookie(socket.handshake.headers.cookie);
 
 	if (userName == "")
@@ -132,19 +136,19 @@ io.on("connection", socket =>
 	users.push({ id: socket.id, name: userName });
 
 	const numUsers = io.sockets.adapter.rooms[roomName].length;
-	socket.emit("receiveRoomURL", socket.handshake.headers.referer, roomName, userName, numUsers);
+	socket.emit("receiveRoomURL", url, roomName, userName, numUsers);
 	socket.broadcast.to(roomName).emit("userJoin", userName);
 
 	if (numUsers <= 1) // this is the first user in this room
 	{
-		makeAdmin(socket, roomName, socket.id);
+		makeAdmin(roomName, socket.id);
 	} else
 	{
 		// ask for current canvas
-		if(!io.sockets.adapter.rooms[roomName].requesterIds)
+		if (!io.sockets.adapter.rooms[roomName].requesterIds)
 			io.sockets.adapter.rooms[roomName].requesterIds = [];
 
-		if(!io.sockets.adapter.rooms[roomName].bgRequesterIds)
+		if (!io.sockets.adapter.rooms[roomName].bgRequesterIds)
 			io.sockets.adapter.rooms[roomName].bgRequesterIds = [];
 
 		io.sockets.adapter.rooms[roomName].requesterIds.push(socket.id);
@@ -159,14 +163,14 @@ io.on("connection", socket =>
 		socket.broadcast.to(roomName).emit("draw", data);
 	});
 
-	socket.on("receiveCanvas", canvasData =>
+	socket.on("receiveCanvas", (canvasData, width, height) =>
 	{
-		if(io.sockets.adapter.rooms[roomName].requesterIds
+		if (io.sockets.adapter.rooms[roomName].requesterIds
 			&& io.sockets.adapter.rooms[roomName].requesterIds.length > 0)
 		{
 			io.sockets.adapter.rooms[roomName].requesterIds.forEach((userId, index, arr) =>
 			{
-				io.to(userId).emit("receiveCanvas", canvasData);
+				io.to(userId).emit("receiveCanvas", canvasData, width, height);
 				arr.splice(index, 1);
 			});
 		}
@@ -193,6 +197,14 @@ io.on("connection", socket =>
 	socket.on("userNameChange", newUserName =>
 	{
 		changeUserName(socket.id, newUserName);
+	});
+
+	socket.on("setCanvasSize", (width, height) =>
+	{
+		if (isAdmin(roomName, socket.id))
+		{
+			socket.broadcast.to(roomName).emit("receiveCanvasSize", width, height);
+		}
 	});
 
 	socket.on("disconnect", () =>
@@ -222,12 +234,12 @@ io.on("connection", socket =>
 
 		if (io.sockets.adapter.rooms[roomName] && io.sockets.adapter.rooms[roomName].length > 0)
 		{
-			// if user is admin
+			// if disconnected user was admin, give admin privileges to the oldest connected user
 			if (isAdmin(roomName, socket.id))
 			{
-				// make someone else admin
-				const keys = Object.keys(io.sockets.adapter.rooms[roomName].sockets);
-				makeAdmin(socket, roomName, keys[0]);
+				const userIds = Object.keys(io.sockets.adapter.rooms[roomName].sockets);
+				const newAdminId = userIds[0];
+				makeAdmin(roomName, newAdminId);
 			}
 		}
 	});

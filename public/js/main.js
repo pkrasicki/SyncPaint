@@ -33,16 +33,13 @@ let isSavingCanvas = false;
 let sliderMousePressed = false;
 let lastSelectedSlider;
 let touchJustEnded = false;
-let isAdmin = false;
 let isFirstJoin = true;
 
-// set canvas size based on window dimensions
-function setCanvasSize()
+// calculate canvas size based on window dimensions
+function defaultCanvasSize()
 {
-	const canvasData = canvas.toDataURL("image/png");
-	const bgData = bgCanvas.toDataURL("image/png");
-	let newHeight = window.innerHeight * CANVAS_SIZE;
 	let newWidth = window.innerWidth * CANVAS_SIZE;
+	let newHeight = window.innerHeight * CANVAS_SIZE;
 
 	if (window.innerWidth < SMALL_SIZE_PX)
 		newWidth = window.innerWidth * CANVAS_SIZE_SMALL;
@@ -54,12 +51,54 @@ function setCanvasSize()
 	else if (window.innerHeight < MEDIUM_SIZE_PX)
 		newHeight = window.innerHeight * CANVAS_SIZE_MEDIUM;
 
-	canvas.height = newHeight;
-	canvas.width = newWidth;
-	bgCanvas.height = newHeight;
-	bgCanvas.width = newWidth;
+	newWidth = Math.round(newWidth);
+	newHeight = Math.round(newHeight);
+
+	return {width: newWidth, height: newHeight};
+}
+
+// makes sure canvas is never obscured by toolbar and navbar
+function repositionCanvas()
+{
+	const canvasLayersRect = document.querySelector(".canvas-layers").getBoundingClientRect();
+
+	if (canvas.width > canvasLayersRect.width)
+	{
+		canvas.style.left = "0px";
+		bgCanvas.style.left = "0px";
+
+	} else
+	{
+		canvas.style.left = "initial";
+		bgCanvas.style.left = "initial";
+	}
+
+	if (canvas.height > canvasLayersRect.height)
+	{
+		canvas.style.top = "0px";
+		bgCanvas.style.top = "0px";
+
+	} else
+	{
+		canvas.style.top = "initial";
+		bgCanvas.style.top = "initial";
+	}
+}
+
+function setCanvasSize(size)
+{
+	const canvasData = canvas.toDataURL("image/png");
+	const bgData = bgCanvas.toDataURL("image/png");
+	canvas.height = size.height;
+	canvas.width = size.width;
+	bgCanvas.height = size.height;
+	bgCanvas.width = size.width;
+	repositionCanvas();
 	loadCanvasData(ctx, canvasData);
 	loadCanvasData(bgCtx, bgData);
+
+	document.querySelector("#canvas-width").value = size.width;
+	document.querySelector("#canvas-height").value = size.height;
 }
 
 // load image from canvasURL
@@ -491,7 +530,7 @@ function initializeSocket()
 
 		socket.on("canvasRequest", () =>
 		{
-			socket.emit("receiveCanvas", canvas.toDataURL("image/png"));
+			socket.emit("receiveCanvas", canvas.toDataURL("image/png"), canvas.width, canvas.height);
 		});
 
 		socket.on("backgroundCanvasRequest", () =>
@@ -499,9 +538,15 @@ function initializeSocket()
 			socket.emit("receiveBackgroundCanvas", bgCanvas.toDataURL("image/png"));
 		});
 
-		socket.on("receiveCanvas", canvasData =>
+		socket.on("receiveCanvas", (canvasData, width, height) =>
 		{
+			setCanvasSize({width: width, height: height});
 			loadCanvasData(ctx, canvasData);
+		});
+
+		socket.on("receiveCanvasSize", (width, height) =>
+		{
+			setCanvasSize({width: width, height: height});
 		});
 
 		socket.on("receiveBackgroundCanvas", bgCanvasData =>
@@ -509,9 +554,18 @@ function initializeSocket()
 			loadCanvasData(bgCtx, bgCanvasData);
 		});
 
-		socket.on("setAdmin", value =>
+		socket.on("setAdmin", isAdmin =>
 		{
-			isAdmin = value;
+			const adminSettings = document.querySelector("#admin-settings");
+			if (isAdmin == true)
+			{
+				if (adminSettings.classList.contains("hidden"))
+					adminSettings.classList.remove("hidden");
+			} else
+			{
+				if (!adminSettings.classList.contains("hidden"))
+					adminSettings.classList.add("hidden");
+			}
 		});
 
 	} catch (error)
@@ -644,14 +698,14 @@ function settingsBtnClicked(e)
 	{
 		panel.style.visibility = "visible";
 
-		var rect = panel.getBoundingClientRect();
-		var parentRect = panel.parentElement.getBoundingClientRect();
-		var posX = parentRect.left + (parentRect.width / 2) - (rect.width / 2);
+		const rect = panel.getBoundingClientRect();
+		const parentRect = panel.parentElement.getBoundingClientRect();
+		let posX = parentRect.left + (parentRect.width / 2) - (rect.width / 2);
 
 		if (posX + rect.width > window.innerWidth)
 			posX = window.innerWidth - rect.width;
 
-		panel.style.left = posX + "px";
+		panel.style.left = `${posX}px`;
 	}
 }
 
@@ -665,7 +719,6 @@ function userNameChanged(e)
 
 function windowResized()
 {
-	setCanvasSize();
 	document.querySelector(".options-panel").style.visibility = "hidden";
 	brushSizeMenu.style.visibility = "hidden";
 
@@ -679,6 +732,8 @@ function windowResized()
 
 	if (backgroundSelectionModal.style.display != "none" && backgroundSelectionModal.style.display != "")
 		showBackgroundSelectionModal(); // redraw to update position and size
+
+	repositionCanvas();
 }
 
 // slider value changed by user
@@ -773,6 +828,29 @@ function beforeWindowUnloaded(e)
 	e.returnValue = "";
 }
 
+// user edited canvas size input
+function canvasSizeSettingChanged(e)
+{
+	const applyBtn = document.querySelector("#canvas-size-apply");
+	if (applyBtn.classList.contains("disabled"))
+		applyBtn.classList.remove("disabled");
+
+	applyBtn.disabled = false;
+}
+
+function applyCanvasSize(e)
+{
+	const applyBtn = document.querySelector("#canvas-size-apply");
+	if (!applyBtn.classList.contains("disabled"))
+		applyBtn.classList.add("disabled");
+
+	applyBtn.disabled = true;
+	let width = Math.round(document.querySelector("#canvas-width").value);
+	let height = Math.round(document.querySelector("#canvas-height").value);
+	setCanvasSize({width: width, height: height});
+	socket.emit("setCanvasSize", width, height);
+}
+
 window.addEventListener("load", () =>
 {
 	canvas = document.querySelector("#drawArea");
@@ -820,9 +898,12 @@ window.addEventListener("load", () =>
 	settingsBtn.addEventListener("click", settingsBtnClicked);
 	nameInput.addEventListener("change", userNameChanged);
 	imageFileInput.addEventListener("change", imageFileInputChanged);
+	document.querySelector("#canvas-width").addEventListener("input", canvasSizeSettingChanged);
+	document.querySelector("#canvas-height").addEventListener("input", canvasSizeSettingChanged);
+	document.querySelector("#canvas-size-apply").addEventListener("click", applyCanvasSize);
 
 	initializeSocket();
-	setCanvasSize();
+	setCanvasSize(defaultCanvasSize());
 	initToolbarIcons(toolbar);
 	createBrushPreview();
 	initSliders();

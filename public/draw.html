@@ -15,6 +15,7 @@
 						<div class="color-preview">
 							<input type="color" id="color-picker" title="change brush color"/>
 						</div>
+
 						<a href="#" class="btn-nav brush-size" ondragstart="return false;">
 							<span class="size-value" title="change brush size">20px</span> <span>&#8597;</span>
 							<div class="brush-size-menu">
@@ -23,11 +24,13 @@
 								</div>
 							</div>
 						</a>
+
 						<div class="slider size-slider nav-slider" data-name="Size:" data-min="1" data-max="200" data-unit="px" oncontextmenu="return false;">
 							<%= htmlWebpackPlugin.options.slider %>
 						</div>
 					</div>
 				</li>
+
 				<li class="room">
 					<a href="#" id="room-url" title="copy link to clickboard" data-clipboard="">
 						<span class="url-container">
@@ -36,12 +39,23 @@
 						<i class="fas fa-copy url-icon"></i>
 					</a>
 				</li>
+
 				<li class="options-container">
 					<div><a href="#" class="btn-nav" title="save image to disk" id="save" download="canvas.png"><i class="fas fa-save"></i> <span class="responsive-icon-text">Save</span></a></div>
 					<div><a href="#" class="btn-nav" title="settings" id="settings"><i class="fas fa-cog"></i> <span class="responsive-icon-text">Settings</span></a>
 						<div class="options-panel">
 							<label><i class="fas fa-user"></i> user name</label>
 							<input type="text" maxlength="30"/>
+
+							<div class="admin-settings hidden" id="admin-settings">
+								<span><i class="fas fa-expand"></i> canvas size</span>
+								<div class="canvas-size">
+									<input id="canvas-width" min="0" max="10000" type="number"/>
+									<input id="canvas-height" min="0" max="10000" type="number"/>
+								</div>
+
+								<button class="btn" id="canvas-size-apply" disabled>Apply</button>
+							</div>
 						</div>
 					</div>
 				</li>
@@ -51,9 +65,10 @@
 
 	<main>
 		<aside class="toolbar"><%= htmlWebpackPlugin.options.toolbar %></aside>
-		<canvas id="bgCanvas" oncontextmenu="return false;"></canvas>
-		<canvas id="drawArea" oncontextmenu="return false;"></canvas>
-
+		<div class="canvas-layers">
+			<canvas id="bgCanvas" oncontextmenu="return false;"></canvas>
+			<canvas id="drawArea" oncontextmenu="return false;"></canvas>
+		</div>
 		<div class="background-modal"><%= htmlWebpackPlugin.options.backgroundModal %></div>
 	</main>
 </body>
