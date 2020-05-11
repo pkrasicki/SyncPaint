@@ -5,11 +5,12 @@ const io = require("socket.io")(http);
 const path = require("path");
 
 const PORT = process.env.PORT || 3000;
-let users = [];
+const MAX_USER_NAME_LENGTH = 32;
+const MAX_CANVAS_SIZE = 10000;
 
 app.use(express.static("./dist"));
 
-function generateRandomString(length, chars, prefix="")
+function randomString(length, chars, prefix="")
 {
 	let str = "";
 
@@ -22,26 +23,20 @@ function generateRandomString(length, chars, prefix="")
 	return prefix + str;
 }
 
-function generateRoomName()
+// default room name
+function randomRoomName()
 {
 	const nameLength = 6;
 	const chars = "abcdefghijklmnopqrstuvwxyz1234567890";
-	return generateRandomString(nameLength, chars);
+	return randomString(nameLength, chars);
 }
 
-function generateUniqueUserName()
+// default user name
+function randomUserName()
 {
-	const userNames = users.map(user => user.name);
-	const nameLength = 6;
+	const nameLength = 4;
 	const chars = "1234567890";
-	let name;
-
-	do
-	{
-		name = generateRandomString(nameLength, chars, "g");
-	} while(userNames.indexOf(name) > -1);
-
-	return name;
+	return randomString(nameLength, chars, "user");
 }
 
 function getRoomNameFromUrl(url)
@@ -51,31 +46,6 @@ function getRoomNameFromUrl(url)
 
 	const splitArray = url.split("/");
 	return splitArray[splitArray.length - 1];
-}
-
-function changeUserName(socketId, newUserName)
-{
-	for (let i = 0; i < users.length; i++)
-	{
-		if (users[i].id == socketId)
-		{
-			users[i].name = newUserName;
-			break;
-		}
-	}
-}
-
-function removeUserName(socketId)
-{
-	for (let i = 0; i < users.length; i++)
-	{
-		if (users[i].id == socketId)
-		{
-			const name = users[i].name;
-			users.splice(i, 1);
-			return name;
-		}
-	}
 }
 
 function getUserNameFromCookie(cookie)
@@ -89,7 +59,7 @@ function getUserNameFromCookie(cookie)
 			const key = splitArray[i].replace(/=.*$/, "").trim();
 
 			if (key == "userName")
-				return value;
+				return validUserName(value);
 		}
 	}
 
@@ -108,14 +78,28 @@ function makeAdmin(roomName, socketId)
 	io.to(socketId).emit("setAdmin", true);
 }
 
+// makes sure user name is valid
+function validUserName(userName)
+{
+	let newName = `${userName}`;
+	newName = newName.trim();
+
+	if (newName.length == 0)
+		newName = "unnamed user";
+	else if (newName.length > MAX_USER_NAME_LENGTH)
+		newName = newName.substring(0, MAX_USER_NAME_LENGTH);
+
+	return newName;
+}
+
 app.get("/d", (req, res) =>
 {
-	res.redirect("/" + generateRoomName());
+	res.redirect("/" + randomRoomName());
 });
 
 app.get("/draw.html", (req, res) =>
 {
-	res.redirect("/" + generateRoomName());
+	res.redirect("/" + randomRoomName());
 });
 
 app.get("/:id", (req, res) =>
@@ -129,11 +113,11 @@ io.on("connection", socket =>
 	const roomName = getRoomNameFromUrl(url);
 	let userName = getUserNameFromCookie(socket.handshake.headers.cookie);
 
-	if (userName == "")
-		userName = generateUniqueUserName();
+	if (userName == "") // cookie wasn't set
+		userName = randomUserName();
 
+	socket.userName = userName;
 	socket.join(roomName);
-	users.push({ id: socket.id, name: userName });
 
 	const numUsers = io.sockets.adapter.rooms[roomName].length;
 	socket.emit("receiveRoomURL", url, roomName, userName, numUsers);
@@ -160,11 +144,18 @@ io.on("connection", socket =>
 
 	socket.on("draw", data =>
 	{
-		socket.broadcast.to(roomName).emit("draw", data);
+		if (data != null)
+			socket.broadcast.to(roomName).emit("draw", data);
 	});
 
 	socket.on("receiveCanvas", (canvasData, width, height) =>
 	{
+		if (!isAdmin(roomName, socket.id)) // only accept canvas from an admin
+			return;
+
+		if (width < 0 || height < 0 || width > MAX_CANVAS_SIZE || height > MAX_CANVAS_SIZE)
+			return;
+
 		if (io.sockets.adapter.rooms[roomName].requesterIds
 			&& io.sockets.adapter.rooms[roomName].requesterIds.length > 0)
 		{
@@ -178,7 +169,10 @@ io.on("connection", socket =>
 
 	socket.on("receiveBackgroundCanvas", canvasData =>
 	{
-		if(io.sockets.adapter.rooms[roomName].bgRequesterIds
+		if (!isAdmin(roomName, socket.id)) // only accept canvas from an admin
+			return;
+
+		if (io.sockets.adapter.rooms[roomName].bgRequesterIds
 			&& io.sockets.adapter.rooms[roomName].bgRequesterIds.length > 0)
 		{
 			io.sockets.adapter.rooms[roomName].bgRequesterIds.forEach((userId, index, arr) =>
@@ -189,6 +183,7 @@ io.on("connection", socket =>
 		}
 	});
 
+	// user changed background image
 	socket.on("receiveBackgroundCanvasAll", canvasData =>
 	{
 		socket.broadcast.to(roomName).emit("receiveBackgroundCanvas", canvasData);
@@ -196,30 +191,28 @@ io.on("connection", socket =>
 
 	socket.on("userNameChange", newUserName =>
 	{
-		changeUserName(socket.id, newUserName);
+		socket.userName = validUserName(newUserName);
 	});
 
 	socket.on("setCanvasSize", (width, height) =>
 	{
 		if (isAdmin(roomName, socket.id))
 		{
-			socket.broadcast.to(roomName).emit("receiveCanvasSize", width, height);
+			if (width >= 0 && height >= 0 && width <= MAX_CANVAS_SIZE && height <= MAX_CANVAS_SIZE)
+				socket.broadcast.to(roomName).emit("receiveCanvasSize", width, height);
 		}
 	});
 
 	socket.on("disconnect", () =>
 	{
-		const userName = removeUserName(socket.id);
-		io.sockets.in(roomName).emit("userLeave", userName);
+		io.sockets.in(roomName).emit("userLeave", socket.userName);
 
 		// remove pending canvas request
 		if (io.sockets.adapter.rooms[roomName] && io.sockets.adapter.rooms[roomName].requesterIds)
 		{
 			const index = io.sockets.adapter.rooms[roomName].requesterIds.indexOf(socket.id);
 			if (index > -1)
-			{
 				io.sockets.adapter.rooms[roomName].requesterIds.splice(index, 1);
-			}
 		}
 
 		// remove pending background canvas request
@@ -227,9 +220,7 @@ io.on("connection", socket =>
 		{
 			const index = io.sockets.adapter.rooms[roomName].bgRequesterIds.indexOf(socket.id);
 			if (index > -1)
-			{
 				io.sockets.adapter.rooms[roomName].bgRequesterIds.splice(index, 1);
-			}
 		}
 
 		if (io.sockets.adapter.rooms[roomName] && io.sockets.adapter.rooms[roomName].length > 0)
