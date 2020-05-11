@@ -504,6 +504,7 @@ function initializeSocket()
 			updateDisplayedRoomUrl(fullRoomUrl, roomName);
 			roomUrlLink.href = fullRoomUrl;
 			roomUrlLink.dataset.clipboard = fullRoomUrl;
+			document.title = `SyncPaint - ${roomName}`;
 			document.querySelector(".options-panel input").value = userName;
 
 			// if it's the first user in a room set their foreground to white instead of default transparent
