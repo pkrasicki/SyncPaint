@@ -1,13 +1,18 @@
-<h2>Add Background Image</h2>
-<input id="image-file-input" class="hide-on-drop" type="file" accept="image/*"/>
-<div class="drop-area">
-	<div class="hide-on-drop hide-on-image-input">
-		<p>or drop image here</p>
-		<i class="fas fa-image fa-8x"></i>
-	</div>
-</div>
+<div class="modal" id="background-modal">
+	<div class="modal-content background-selection">
+		<h2 class="title">Add Background Image</h2>
 
-<div class="buttons">
-	<button id="add-image" class="btn">Add Image</button>
-	<button id="hide-background-modal" class="btn-warning">Cancel</button>
+		<input id="image-file-input" class="hide-on-drop" type="file" accept="image/*"/>
+		<div class="drop-area">
+			<div class="hide-on-drop hide-on-image-input">
+				<p>or drop image here</p>
+				<i class="fas fa-image fa-8x"></i>
+			</div>
+		</div>
+
+		<div class="buttons">
+			<button id="add-image" class="btn disabled">Add Image</button>
+			<button id="hide-background-modal" class="btn-warning">Cancel</button>
+		</div>
+	</div>
 </div>

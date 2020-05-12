@@ -147,3 +147,38 @@ input, button
 {
 	display: none !important;
 }
+
+.modal
+{
+	position: absolute;
+	width: 100vw;
+	height: 100vh;
+	z-index: 1;
+	background: rgba(0, 0, 0, 0.5);
+	display: none;
+	flex-direction: row;
+	justify-content: center;
+	align-items: center;
+}
+
+.modal-content
+{
+	width: 50vw;
+	height: 50vh;
+	border: solid 1px $darker;
+	border-radius: 5px;
+	background: $dark;
+	color: $light;
+	box-shadow: 0 0 5px $dark;
+	z-index: 2;
+	text-align: center;
+	min-height: 420px;
+	padding: 0 50px;
+	position: relative;
+	top: -39px; // navbar height
+
+	.title
+	{
+		margin-bottom: 5px;
+	}
+}

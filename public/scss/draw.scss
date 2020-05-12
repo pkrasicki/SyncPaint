@@ -355,30 +355,14 @@ canvas
 	}
 }
 
-.modal
+.background-selection
 {
-	display: none;
-	position: absolute;
-	width: 50vw;
-	height: 50vh;
-	border: solid 1px $darker;
-	border-radius: 5px;
-	background: $dark;
-	color: $light;
-	box-shadow: 0 0 10px $dark;
-	z-index: 2;
-	text-align: center;
-	min-height: 420px;
-	padding: 0 50px;
-
-	h2
-	{
-		margin-bottom: 5px;
-	}
+	@extend .modal-content;
 
 	input[type=file]
 	{
 		text-align: center;
+		font-size: 16px;
 	}
 
 	p
@@ -404,9 +388,7 @@ canvas
 
 	.buttons
 	{
-		position: absolute;
-		left: 0;
-		bottom: 15px;
+		margin-top: 10px;
 		width: 100%;
 
 		button
@@ -420,11 +402,6 @@ canvas
 			margin-right: 0;
 		}
 	}
-}
-
-.background-modal
-{
-	@extend .modal;
 }
 
 .brush-preview
@@ -499,7 +476,7 @@ canvas
 		display: inline-block;
 	}
 
-	.modal
+	.modal-content
 	{
 		width: 65vw;
 	}
@@ -547,7 +524,7 @@ canvas
 		width: 150px;
 	}
 
-	.modal h2
+	.modal-content .title
 	{
 		font-size: 18px;
 	}

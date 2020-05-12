@@ -1,6 +1,4 @@
-export {Slider};
-
-class Slider
+export class Slider
 {
 	static init(slider)
 	{

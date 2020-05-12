@@ -12,7 +12,7 @@ import {Fill} from "./tools/fill";
 import {Notification} from "./notification/notification";
 import {NotificationSystem} from "./notification/notification-system";
 import {DrawingData} from "./models/drawing-data";
-import {Slider} from "./slider/slider";
+import {Slider} from "./components/slider/slider";
 
 const CANVAS_SIZE = 0.9;
 const CANVAS_SIZE_MEDIUM = 0.85;
@@ -599,7 +599,7 @@ function brushSizeBtnClicked(e)
 
 function showBackgroundSelectionModal()
 {
-	backgroundSelectionModal.style.display = "block";
+	backgroundSelectionModal.style.display = "flex";
 	const rect = backgroundSelectionModal.getBoundingClientRect();
 	const navMenuRect = document.querySelector(".menu-draw").getBoundingClientRect();
 	const left = (window.innerWidth / 2) - (rect.width / 2);
@@ -868,7 +868,7 @@ window.addEventListener("load", () =>
 	const brushSizeBtn = document.querySelector(".brush-size");
 	brushSizeMenu = document.querySelector(".brush-size-menu");
 	sizeValueSpan = document.querySelector(".size-value");
-	backgroundSelectionModal = document.querySelector(".background-modal");
+	backgroundSelectionModal = document.querySelector("#background-modal");
 	backgroundDropArea = document.querySelector(".drop-area");
 	const settingsBtn = document.querySelector("#settings");
 	const nameInput = document.querySelector(".options-panel input");

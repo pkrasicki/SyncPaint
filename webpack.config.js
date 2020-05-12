@@ -3,11 +3,6 @@ const MiniCssExtract = require("mini-css-extract-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const OptimizeCssAssetsPlugin = require("optimize-css-assets-webpack-plugin");
 const TerserPlugin = require("terser-webpack-plugin");
-const fs = require("fs");
-
-const toolbar = fs.readFileSync("./public/toolbar.html");
-const backgroundModal = fs.readFileSync("./public/background-modal.html");
-const slider = fs.readFileSync("./public/slider.html");
 
 module.exports =
 {
@@ -92,10 +87,7 @@ module.exports =
 		}),
 		new HtmlWebpackPlugin({
 			filename: "draw.html",
-			template: "./public/draw.html",
-			toolbar: toolbar,
-			backgroundModal: backgroundModal,
-			slider: slider
+			template: "./public/draw.html"
 		})
 	]
 }
