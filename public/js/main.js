@@ -13,6 +13,7 @@ import {Notification} from "./notification/notification";
 import {NotificationSystem} from "./notification/notification-system";
 import {DrawingData} from "./models/drawing-data";
 import {Slider} from "./components/slider/slider";
+import {BackgroundModal} from "./components/background-modal/background-modal";
 
 const CANVAS_SIZE = 0.9;
 const CANVAS_SIZE_MEDIUM = 0.85;
@@ -24,7 +25,7 @@ const DEFAULT_PAINT_COLOR = "#000000";
 const DEFAULT_PAINT_TOOL = "Brush";
 const notificationSystem = new NotificationSystem();
 let canvas, socket, ctx, bgCtx, colorPicker, backgroundSelectionModal, sizeValueSpan,
-	brushSizeMenu, backgroundDropArea, roomUrlLink;
+	brushSizeMenu, roomUrlLink;
 let isDrawing = false;
 let paintTool = getTool(DEFAULT_PAINT_TOOL, DEFAULT_BRUSH_SIZE, DEFAULT_PAINT_COLOR);
 let drawingStartPos = {x: 0, y: 0};
@@ -172,7 +173,7 @@ function initToolbarIcons(toolbar)
 		}
 
 		if (listItem.dataset.tooltype == "BackgroundImage")
-			listItem.addEventListener("click", showBackgroundSelectionModal);
+			listItem.addEventListener("click", () => backgroundSelectionModal.toggle());
 
 		if (!icon.classList.contains("disabled"))
 			listItem.addEventListener("click", paintToolSwitch);
@@ -597,88 +598,13 @@ function brushSizeBtnClicked(e)
 	}
 }
 
-function showBackgroundSelectionModal()
-{
-	backgroundSelectionModal.style.display = "flex";
-	const rect = backgroundSelectionModal.getBoundingClientRect();
-	const navMenuRect = document.querySelector(".menu-draw").getBoundingClientRect();
-	const left = (window.innerWidth / 2) - (rect.width / 2);
-	const top = (window.innerHeight / 2) - (rect.height / 2) - navMenuRect.height;
-
-	backgroundSelectionModal.style.left = left + "px";
-	backgroundSelectionModal.style.top = top + "px";
-
-	document.querySelectorAll(".hide-on-drop").forEach(item =>
-	{
-		item.style.display = "initial";
-	});
-	backgroundDropArea.style.borderWidth = "1px";
-	document.querySelector(".drop-area p").style.display = "block";
-
-	const imagePreview = document.querySelector("#bg-image-preview");
-	if (imagePreview)
-		backgroundDropArea.removeChild(imagePreview);
-}
-
-function hideBackgroundSelectionModal()
-{
-	backgroundSelectionModal.style.display = "none";
-	document.querySelector("#image-file-input").value = "";
-}
-
 function addCanvasBackgroundImage()
 {
-	hideBackgroundSelectionModal();
+	backgroundSelectionModal.hide();
 
-	var imagePreview = document.querySelector("#bg-image-preview");
-	if (!imagePreview)
-		return;
-
+	const imagePreview = document.querySelector("#bg-image-preview");
 	loadCanvasData(bgCtx, imagePreview.src);
 	socket.emit("receiveBackgroundCanvasAll", imagePreview.src);
-}
-
-function imageDraggedOver(e)
-{
-	e.preventDefault();
-	e.dataTransfer.dropEffect = 'copy';
-}
-
-// load image from given file and display in preview area
-function loadBackgroundImage(file)
-{
-	if (file.type.match(/image*/))
-	{
-		var reader = new FileReader();
-		reader.onload = (readerEv) =>
-		{
-			var imagePreview = document.querySelector("#bg-image-preview");
-			if (!imagePreview)
-			{
-				imagePreview = document.createElement("img");
-				imagePreview.id = "bg-image-preview";
-				imagePreview.style.width = "100%";
-			}
-
-			imagePreview.src = readerEv.target.result;
-			backgroundDropArea.style.borderWidth = "0px";
-			backgroundDropArea.appendChild(imagePreview);
-		};
-
-		reader.readAsDataURL(file);
-	}
-}
-
-// image dropped into add image modal
-function imageDropped(e)
-{
-	e.preventDefault();
-	loadBackgroundImage(e.dataTransfer.files[0]);
-
-	document.querySelectorAll(".hide-on-drop").forEach(item =>
-	{
-		item.style.display = "none";
-	});
 }
 
 function setLocalForegroundColor(color)
@@ -730,9 +656,6 @@ function windowResized()
 	{
 		Slider.updatePosition(slider.querySelector(".slider-fg"), paintTool.size);
 	});
-
-	if (backgroundSelectionModal.style.display != "none" && backgroundSelectionModal.style.display != "")
-		showBackgroundSelectionModal(); // redraw to update position and size
 
 	repositionCanvas();
 }
@@ -792,16 +715,6 @@ function windowMouseMoved(e)
 {
 	if (sliderMousePressed)
 		sizeSliderChanged(e);
-}
-
-function imageFileInputChanged(e)
-{
-	document.querySelectorAll(".hide-on-image-input").forEach(item =>
-	{
-		item.style.display = "none";
-	});
-
-	loadBackgroundImage(e.currentTarget.files[0]);
 }
 
 function keyPressed(e)
@@ -868,11 +781,9 @@ window.addEventListener("load", () =>
 	const brushSizeBtn = document.querySelector(".brush-size");
 	brushSizeMenu = document.querySelector(".brush-size-menu");
 	sizeValueSpan = document.querySelector(".size-value");
-	backgroundSelectionModal = document.querySelector("#background-modal");
-	backgroundDropArea = document.querySelector(".drop-area");
+	backgroundSelectionModal = new BackgroundModal("background-modal");
 	const settingsBtn = document.querySelector("#settings");
 	const nameInput = document.querySelector(".options-panel input");
-	const imageFileInput = document.querySelector("#image-file-input");
 
 	window.addEventListener("resize", windowResized);
 	window.addEventListener("mouseup", canvasMouseUp);
@@ -892,13 +803,9 @@ window.addEventListener("load", () =>
 	saveBtn.addEventListener("click", saveBtnClicked);
 	colorPicker.addEventListener("change", paintColorChanged);
 	brushSizeBtn.addEventListener("click", brushSizeBtnClicked);
-	document.getElementById("hide-background-modal").addEventListener("click", hideBackgroundSelectionModal);
 	document.getElementById("add-image").addEventListener("click", addCanvasBackgroundImage);
-	backgroundDropArea.addEventListener("dragover", imageDraggedOver);
-	backgroundDropArea.addEventListener("drop", imageDropped);
 	settingsBtn.addEventListener("click", settingsBtnClicked);
 	nameInput.addEventListener("change", userNameChanged);
-	imageFileInput.addEventListener("change", imageFileInputChanged);
 	document.querySelector("#canvas-width").addEventListener("input", canvasSizeSettingChanged);
 	document.querySelector("#canvas-height").addEventListener("input", canvasSizeSettingChanged);
 	document.querySelector("#canvas-size-apply").addEventListener("click", applyCanvasSize);
