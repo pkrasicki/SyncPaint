@@ -1,5 +1,9 @@
 <div class="modal hidden" id="background-modal">
 	<div class="modal-content background-selection">
+		<div class="modal-header">
+			<i id="close-modal" class="fas fa-times-circle close-btn"></i>
+		</div>
+
 		<h2 class="title">Add Background Image</h2>
 
 		<input id="image-file-input" class="hide-on-drop" type="file" accept="image/*"/>
@@ -12,9 +16,6 @@
 			<img id="bg-image-preview"/>
 		</div>
 
-		<div class="buttons">
-			<button id="add-image" class="btn disabled">Add Image</button>
-			<button id="close-modal" class="btn-warning">Cancel</button>
-		</div>
+		<button id="add-image" class="btn" disabled>Add Image</button>
 	</div>
 </div>

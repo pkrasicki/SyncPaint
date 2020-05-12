@@ -30,6 +30,8 @@ export class BackgroundModal extends Modal
 		this.imagePreview.src = "";
 		if (!this.imagePreview.classList.contains("hidden"))
 			this.imagePreview.classList.add("hidden");
+
+		this.element.querySelector("#add-image").disabled = true;
 	}
 
 	hide()
@@ -53,6 +55,8 @@ export class BackgroundModal extends Modal
 		{
 			item.style.display = "none";
 		});
+
+		this.element.querySelector("#add-image").disabled = false;
 	}
 
 	imageFileInputChanged(e)
@@ -63,6 +67,7 @@ export class BackgroundModal extends Modal
 		});
 
 		this.loadBackgroundImage(e.currentTarget.files[0]);
+		this.element.querySelector("#add-image").disabled = false;
 	}
 
 	// load image from provided file and display in preview area

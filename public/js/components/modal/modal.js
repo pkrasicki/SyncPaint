@@ -12,6 +12,13 @@ export class Modal
 			if (e.key == "Escape" && this.isVisible)
 				this.hide();
 		});
+
+		this.element.addEventListener("click", (e) =>
+		{
+			// close modal when user clicks outside area
+			if (e.target == this.element && this.isVisible)
+				this.hide();
+		});
 	}
 
 	show()
