@@ -15,6 +15,13 @@ npm run build
 ## Running locally
 `node app.js`
 
-It will create a server on localhost:3000
+It will create a server on `localhost:3000`
 
 Live version is available at [syncpaint.com](https://syncpaint.com).
+
+## Docker
+
+```
+docker build . -t syncpaint:latest
+docker run -p 3000:3000 syncpaint:latest
+```
