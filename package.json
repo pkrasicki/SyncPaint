@@ -10,11 +10,15 @@
     "server": "webpack-dev-server",
     "watch": "webpack --watch"
   },
-  "keywords": ["group drawing", "synchronized drawing", "synchronized paint"],
+  "keywords": [
+    "group drawing",
+    "synchronized drawing",
+    "synchronized paint"
+  ],
   "author": "pkrasicki",
   "repository": {
-    "type" : "git",
-    "url" : "https://github.com/pkrasicki/SyncPaint.git"
+    "type": "git",
+    "url": "https://github.com/pkrasicki/SyncPaint.git"
   },
   "devDependencies": {
     "css-loader": "^2.1.1",

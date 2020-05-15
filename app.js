@@ -92,6 +92,14 @@ function validUserName(userName)
 	return newName;
 }
 
+function userIdToUserObject(id)
+{
+	return {
+		id: id,
+		name: io.of("/").sockets[id].userName
+	};
+}
+
 app.get("/d", (req, res) =>
 {
 	res.redirect("/" + randomRoomName());
@@ -119,11 +127,13 @@ io.on("connection", socket =>
 	socket.userName = userName;
 	socket.join(roomName);
 
-	const numUsers = io.sockets.adapter.rooms[roomName].length;
-	socket.emit("receiveRoomURL", url, roomName, userName, numUsers);
-	socket.broadcast.to(roomName).emit("userJoin", userName);
+	let userIds = Object.keys(io.sockets.adapter.rooms[roomName].sockets);
+	userIds = userIds.filter(id => id != socket.id);
+	const roomUsers = userIds.map(userIdToUserObject);
+	socket.emit("receiveRoomData", url, roomName, userName, roomUsers);
+	socket.broadcast.to(roomName).emit("userJoin", userName, socket.id);
 
-	if (numUsers <= 1) // this is the first user in this room
+	if (roomUsers.length <= 0) // this is the first user in this room
 	{
 		makeAdmin(roomName, socket.id);
 	} else
@@ -203,9 +213,14 @@ io.on("connection", socket =>
 		}
 	});
 
+	socket.on("cursorPosition", (pos, size, color) =>
+	{
+		socket.broadcast.to(roomName).emit("cursorPosition", socket.id, pos, size, color);
+	});
+
 	socket.on("disconnect", () =>
 	{
-		io.sockets.in(roomName).emit("userLeave", socket.userName);
+		io.sockets.in(roomName).emit("userLeave", socket.userName, socket.id);
 
 		// remove pending canvas request
 		if (io.sockets.adapter.rooms[roomName] && io.sockets.adapter.rooms[roomName].requesterIds)

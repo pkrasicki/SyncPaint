@@ -404,11 +404,24 @@ canvas
 {
 	position: absolute;
 	pointer-events: none;
-	cursor: crosshair;
 	visibility: hidden;
 	border-style: dotted;
 	border-width: 2px;
 	z-index: 1;
+}
+
+.brush-preview-remote
+{
+	@extend .brush-preview;
+	opacity: 0.5;
+	border-radius: 50%;
+}
+
+.name-tag
+{
+	position: relative;
+	font-size: 16px;
+	text-shadow: 1px 1px 0px black;
 }
 
 .slider
