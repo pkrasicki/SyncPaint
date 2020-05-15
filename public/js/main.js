@@ -838,6 +838,36 @@ function sendCursorPosition()
 	}
 }
 
+function textPasted(e)
+{
+	if (paintTool instanceof Text)
+	{
+		let clipboardData = e.clipboardData || window.clipboardData;
+		let pastedData = clipboardData.getData("Text");
+
+		if (pastedData.length <= 0)
+			return;
+
+		let rows = pastedData.split(/\n/g);
+		rows.forEach((row, index) =>
+		{
+			if (row.length > 0)
+			{
+				const drawingData = new DrawingData(drawingStartPos, drawingEndPos, paintTool, row);
+				draw(drawingData);
+				socket.emit("draw", drawingData);
+				drawingStartPos.x += ctx.measureText(pastedData).width;
+
+				if (index != rows.length - 1)
+				{
+					drawingStartPos.x = drawingEndPos.x;
+					drawingStartPos.y += paintTool.size;
+				}
+			}
+		});
+	}
+}
+
 window.addEventListener("load", () =>
 {
 	canvas = document.querySelector("#drawArea");
@@ -864,6 +894,7 @@ window.addEventListener("load", () =>
 	window.addEventListener("mousemove", windowMouseMoved);
 	window.addEventListener("keypress", keyPressed);
 	window.addEventListener("beforeunload", beforeWindowUnloaded);
+	window.addEventListener("paste", textPasted);
 	canvas.addEventListener("mousemove", canvasMouseMoved);
 	canvas.addEventListener("touchmove", canvasMouseMoved);
 	canvas.addEventListener("mouseover", canvasMouseOver);
