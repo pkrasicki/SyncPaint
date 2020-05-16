@@ -106,6 +106,7 @@ function setCanvasSize(size)
 
 	document.querySelector("#canvas-width").value = size.width;
 	document.querySelector("#canvas-height").value = size.height;
+	updateTextCursorPos();
 }
 
 // load image from canvasURL
@@ -281,13 +282,13 @@ function canvasMouseMoved(e)
 				posY = e.touches[i].pageY - rect.top;
 			}
 
-			drawingEndPos = new Vector(posX, posY);
+			updateDrawingPos(null, new Vector(posX, posY));
 
 			const drawingData = new DrawingData(drawingStartPos, drawingEndPos, paintTool);
 			draw(drawingData);
 			socket.emit("draw", drawingData);
 
-			drawingStartPos = new Vector(posX, posY);
+			updateDrawingPos(new Vector(posX, posY), null);
 		}
 	}
 }
@@ -389,8 +390,8 @@ function draw(drawingData)
 
 function drawSinglePoint(posX, posY)
 {
-	drawingStartPos = new Vector(posX, posY);
-	drawingEndPos = new Vector(posX, posY);
+	let newPos = new Vector(posX, posY);
+	updateDrawingPos(newPos, newPos);
 
 	if (paintTool instanceof Text == false && paintTool instanceof Fill == false) // regular brush tools
 	{
@@ -399,7 +400,7 @@ function drawSinglePoint(posX, posY)
 		draw(drawingData);
 		socket.emit("draw", drawingData);
 
-	} else if (paintTool instanceof Fill) // fill tool
+	} else if (paintTool instanceof Fill)
 	{
 		let drawingData = new DrawingData(drawingStartPos, drawingEndPos, paintTool, null, true);
 		draw(drawingData);
@@ -463,6 +464,10 @@ function updateBrushPreview()
 	{
 		brushPreview.style.display = "none";
 		canvas.style.cursor = "text";
+		document.querySelector(".text-cursor").classList.remove("hidden");
+		document.querySelector(".text-cursor").style.backgroundColor = color;
+		document.querySelector(".text-cursor").style.height = `${size}px`;
+		updateTextCursorPos();
 	} else if (paintTool instanceof Fill)
 	{
 		brushPreview.style.display = "none";
@@ -471,6 +476,7 @@ function updateBrushPreview()
 	{
 		brushPreview.style.display = "initial";
 		canvas.style.cursor = "default";
+		document.querySelector(".text-cursor").classList.add("hidden");
 	}
 }
 
@@ -718,6 +724,7 @@ function windowResized()
 	});
 
 	repositionCanvas();
+	updateTextCursorPos();
 }
 
 // slider value changed by user
@@ -783,14 +790,15 @@ function keyPressed(e)
 	{
 		if (e.key == "Enter")
 		{
-			drawingStartPos.x = drawingEndPos.x;
-			drawingStartPos.y += paintTool.size;
+			let newPos = new Vector(drawingEndPos.x, drawingStartPos.y + paintTool.size);
+			updateDrawingPos(newPos, null);
 		} else
 		{
 			const drawingData = new DrawingData(drawingStartPos, drawingEndPos, paintTool, e.key);
 			draw(drawingData);
 			socket.emit("draw", drawingData);
-			drawingStartPos.x += ctx.measureText(e.key).width;
+			let newPos = new Vector(drawingStartPos.x + ctx.measureText(e.key).width, drawingStartPos.y);
+			updateDrawingPos(newPos, null);
 		}
 	}
 }
@@ -856,16 +864,52 @@ function textPasted(e)
 				const drawingData = new DrawingData(drawingStartPos, drawingEndPos, paintTool, row);
 				draw(drawingData);
 				socket.emit("draw", drawingData);
-				drawingStartPos.x += ctx.measureText(pastedData).width;
+				let newPos = new Vector(drawingStartPos.x + ctx.measureText(row).width, drawingStartPos.y);
+				updateDrawingPos(newPos, null);
 
 				if (index != rows.length - 1)
 				{
-					drawingStartPos.x = drawingEndPos.x;
-					drawingStartPos.y += paintTool.size;
+					newPos = new Vector(drawingEndPos.x, drawingStartPos.y + paintTool.size);
+					updateDrawingPos(newPos, null);
 				}
 			}
 		});
 	}
+}
+
+function updateDrawingPos(startPos, endPos)
+{
+	if (startPos != null)
+	{
+		if (startPos.x > canvas.width)
+			startPos.x = canvas.width;
+
+		if (startPos.y > canvas.height)
+			startPos.y = canvas.height;
+
+		drawingStartPos = startPos;
+	}
+
+	if (endPos != null)
+	{
+		if (endPos.x > canvas.width)
+			endPos.x = canvas.width;
+
+		if (endPos.y > canvas.height)
+			endPos.y = canvas.height;
+
+		drawingEndPos = endPos;
+	}
+
+	updateTextCursorPos();
+}
+
+function updateTextCursorPos()
+{
+	const textCursor = document.querySelector(".text-cursor");
+	const textCursorRect = textCursor.getBoundingClientRect();
+	textCursor.style.left = `${drawingStartPos.x + canvas.offsetLeft}px`;
+	textCursor.style.top = `${(drawingStartPos.y + canvas.offsetTop) - textCursorRect.height}px`;
 }
 
 window.addEventListener("load", () =>
