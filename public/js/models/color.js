@@ -20,6 +20,24 @@ export class Color
 		return new Color(red, green, blue);
 	}
 
+	toHex()
+	{
+		let red = this.r.toString(16);
+		let green = this.g.toString(16);
+		let blue = this.b.toString(16);
+
+		if (red.length == 1)
+			red = "0" + red;
+
+		if (green.length == 1)
+			green = "0" + green;
+
+		if (blue.length == 1)
+			blue = "0" + blue;
+
+		return `#${red}${green}${blue}`;
+	}
+
 	equals(color)
 	{
 		return this.r == color.r && this.g == color.g && this.b == color.b;

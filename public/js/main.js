@@ -9,6 +9,7 @@ import {PaintRoller} from "./tools/paint-roller";
 import {Eraser} from "./tools/eraser";
 import {Text} from "./tools/text";
 import {Fill} from "./tools/fill";
+import {ColorPicker} from "./tools/color-picker";
 import {Notification} from "./notification/notification";
 import {NotificationSystem} from "./notification/notification-system";
 import {DrawingData} from "./models/drawing-data";
@@ -142,22 +143,26 @@ function paintToolSwitch(e)
 }
 
 // color change by clicking a toolbar icon or editing color input
-function paintColorChanged(e)
+function paintColorChanged(e, color=null)
 {
-	var previouslySelected = document.querySelector(".selected-color");
+	const previouslySelected = document.querySelector(".selected-color");
 
 	if (previouslySelected)
 		previouslySelected.classList.remove("selected-color");
 
-	e.target.classList.add("selected-color");
-
-	var color;
-	if (e.target == colorPicker)
+	if (e != null)
 	{
-		color = e.target.value;
+		if (e.target == colorPicker)
+		{
+			color = e.target.value;
+		} else
+		{
+			color = e.target.dataset.color;
+			colorPicker.parentElement.style.backgroundColor = color;
+			e.target.classList.add("selected-color");
+		}
 	} else
 	{
-		color = e.target.dataset.color;
 		colorPicker.parentElement.style.backgroundColor = color;
 	}
 
@@ -216,6 +221,8 @@ function getTool(toolName, size, color)
 		return new Text(size, color);
 	else if (toolName == "Fill")
 		return new Fill(size, color);
+	else if (toolName == "ColorPicker")
+		return new ColorPicker(size, color);
 	else
 	{
 		console.error("wrong tool name:", toolName);
@@ -393,16 +400,21 @@ function drawSinglePoint(posX, posY)
 	let newPos = new Vector(posX, posY);
 	updateDrawingPos(newPos, newPos);
 
-	if (paintTool instanceof Text == false && paintTool instanceof Fill == false) // regular brush tools
+	if (paintTool instanceof Fill)
 	{
-		isDrawing = true;
-		let drawingData = new DrawingData(drawingStartPos, drawingEndPos, paintTool);
+		let drawingData = new DrawingData(drawingStartPos, drawingEndPos, paintTool, null, true);
 		draw(drawingData);
 		socket.emit("draw", drawingData);
 
-	} else if (paintTool instanceof Fill)
+	} else if (paintTool instanceof ColorPicker)
 	{
-		let drawingData = new DrawingData(drawingStartPos, drawingEndPos, paintTool, null, true);
+		let color = paintTool.getPixelColor(ctx, bgCtx, posX, posY);
+		paintColorChanged(null, color);
+
+	} else if (paintTool instanceof Text == false) // regular drawing tools
+	{
+		isDrawing = true;
+		let drawingData = new DrawingData(drawingStartPos, drawingEndPos, paintTool);
 		draw(drawingData);
 		socket.emit("draw", drawingData);
 	}
@@ -468,10 +480,13 @@ function updateBrushPreview()
 		document.querySelector(".text-cursor").style.backgroundColor = color;
 		document.querySelector(".text-cursor").style.height = `${size}px`;
 		updateTextCursorPos();
-	} else if (paintTool instanceof Fill)
+
+	} else if (paintTool instanceof Fill || paintTool instanceof ColorPicker)
 	{
 		brushPreview.style.display = "none";
 		canvas.style.cursor = "crosshair";
+		document.querySelector(".text-cursor").classList.add("hidden");
+
 	} else
 	{
 		brushPreview.style.display = "initial";
