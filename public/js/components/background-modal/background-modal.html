@@ -4,7 +4,12 @@
 			<i id="close-modal" class="fas fa-times-circle close-btn"></i>
 		</div>
 
-		<h2 class="title">Add Background Image</h2>
+		<h3 class="title">Background</h3>
+
+		<ul class="tabs">
+			<li class="active" id="tab-image">Image</li>
+			<li id="tab-color">Solid Color</li>
+		</ul>
 
 		<input id="image-file-input" class="hide-on-drop" type="file" accept="image/*"/>
 		<div class="drop-area">
@@ -17,5 +22,16 @@
 		</div>
 
 		<button id="add-image" class="btn" disabled>Add Image</button>
+
+		<div class="tab-content hidden" id="tab-content-color">
+			<div class="bg-color-settings">
+				<input type="color" id="bg-color"/>
+			</div>
+
+			<div class="buttons">
+				<button id="bg-clear" class="btn-warning clear-btn">Clear</button>
+				<button id="bg-fill" class="btn">Fill With Color</button>
+			</div>
+		</div>
 	</div>
 </div>

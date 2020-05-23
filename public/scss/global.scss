@@ -203,3 +203,36 @@ input, button
 		}
 	}
 }
+
+@media(max-width: 700px)
+{
+	.modal
+	{
+		.modal-content
+		{
+			width: 65vw;
+		}
+	}
+}
+
+@media(max-height: 700px)
+{
+	.modal
+	{
+		.modal-content
+		{
+			height: 65vh;
+		}
+	}
+}
+
+@media(max-width: 400px)
+{
+	.modal
+	{
+		.modal-content
+		{
+			padding: 20px;
+		}
+	}
+}

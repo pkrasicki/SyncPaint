@@ -193,10 +193,16 @@ io.on("connection", socket =>
 		}
 	});
 
-	// user changed background image
+	// user changed the background
 	socket.on("receiveBackgroundCanvasAll", canvasData =>
 	{
 		socket.broadcast.to(roomName).emit("receiveBackgroundCanvas", canvasData);
+	});
+
+	// user cleared the background
+	socket.on("backgroundClearAll", () =>
+	{
+		socket.broadcast.to(roomName).emit("backgroundClear");
 	});
 
 	socket.on("userNameChange", newUserName =>

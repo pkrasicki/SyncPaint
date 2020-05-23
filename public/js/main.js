@@ -27,7 +27,7 @@ const DEFAULT_PAINT_COLOR = "#000000";
 const DEFAULT_PAINT_TOOL = "Brush";
 const NET_CURSOR_UPDATE_INTERVAL_MS = 50;
 const notificationSystem = new NotificationSystem();
-let canvas, socket, ctx, bgCtx, colorPicker, backgroundSelectionModal, sizeValueSpan,
+let canvas, socket, ctx, bgCtx, colorSelector, backgroundSelectionModal, sizeValueSpan,
 	brushSizeMenu, roomUrlLink;
 let isDrawing = false;
 let paintTool = getTool(DEFAULT_PAINT_TOOL, DEFAULT_BRUSH_SIZE, DEFAULT_PAINT_COLOR);
@@ -152,18 +152,18 @@ function paintColorChanged(e, color=null)
 
 	if (e != null)
 	{
-		if (e.target == colorPicker)
+		if (e.target == colorSelector)
 		{
 			color = e.target.value;
 		} else
 		{
 			color = e.target.dataset.color;
-			colorPicker.parentElement.style.backgroundColor = color;
+			colorSelector.parentElement.style.backgroundColor = color;
 			e.target.classList.add("selected-color");
 		}
 	} else
 	{
-		colorPicker.parentElement.style.backgroundColor = color;
+		colorSelector.parentElement.style.backgroundColor = color;
 	}
 
 	paintTool.setColor(color);
@@ -577,7 +577,7 @@ function initializeSocket()
 			users = roomUsers;
 
 			// if it's the first user in a room set their foreground to white instead of default transparent
-			if (users.length <= 1 && isFirstJoin)
+			if (users.length == 0 && isFirstJoin)
 				setLocalForegroundColor("white");
 
 			isFirstJoin = false;
@@ -627,6 +627,11 @@ function initializeSocket()
 		socket.on("receiveBackgroundCanvas", bgCanvasData =>
 		{
 			loadCanvasData(bgCtx, bgCanvasData);
+		});
+
+		socket.on("backgroundClear", () =>
+		{
+			bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
 		});
 
 		socket.on("setAdmin", isAdmin =>
@@ -927,19 +932,34 @@ function updateTextCursorPos()
 	textCursor.style.top = `${(drawingStartPos.y + canvas.offsetTop) - textCursorRect.height}px`;
 }
 
+function clearBackground()
+{
+	backgroundSelectionModal.hide();
+	bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+	socket.emit("backgroundClearAll");
+}
+
+function fillBackground()
+{
+	backgroundSelectionModal.hide();
+	bgCtx.fillStyle = backgroundSelectionModal.bgColor;
+	bgCtx.fillRect(0, 0, bgCanvas.width, bgCanvas.height);
+	socket.emit("receiveBackgroundCanvasAll", bgCanvas.toDataURL("image/png"));
+}
+
 window.addEventListener("load", () =>
 {
 	canvas = document.querySelector("#drawArea");
-	const bgCanvas = document.querySelector("#bgCanvas");
 	if (!canvas)
 		return;
 
 	ctx = canvas.getContext("2d");
+	const bgCanvas = document.querySelector("#bgCanvas");
 	bgCtx = bgCanvas.getContext("2d");
 	const toolbar = document.querySelector(".toolbar");
 	roomUrlLink = document.querySelector("#room-url");
 	const saveBtn = document.querySelector("#save");
-	colorPicker = document.querySelector("#color-picker");
+	colorSelector = document.querySelector("#color-selector");
 	const brushSizeBtn = document.querySelector(".brush-size");
 	brushSizeMenu = document.querySelector(".brush-size-menu");
 	sizeValueSpan = document.querySelector(".size-value");
@@ -964,15 +984,19 @@ window.addEventListener("load", () =>
 	canvas.addEventListener("touchend", canvasTouchEnded);
 	roomUrlLink.addEventListener("click", roomUrlClicked);
 	saveBtn.addEventListener("click", saveBtnClicked);
-	colorPicker.addEventListener("change", paintColorChanged);
+	colorSelector.addEventListener("change", paintColorChanged);
 	brushSizeBtn.addEventListener("click", brushSizeBtnClicked);
-	document.getElementById("add-image").addEventListener("click", addCanvasBackgroundImage);
 	settingsBtn.addEventListener("click", settingsBtnClicked);
 	nameInput.addEventListener("change", userNameChanged);
 	document.querySelector("#canvas-width").addEventListener("input", canvasSizeSettingChanged);
 	document.querySelector("#canvas-height").addEventListener("input", canvasSizeSettingChanged);
 	document.querySelector("#canvas-size-apply").addEventListener("click", applyCanvasSize);
+
 	setInterval(sendCursorPosition, NET_CURSOR_UPDATE_INTERVAL_MS);
+
+	backgroundSelectionModal.onAddImageBtnClick(addCanvasBackgroundImage);
+	backgroundSelectionModal.onClearBtnClick(clearBackground);
+	backgroundSelectionModal.onFillBtnClick(fillBackground);
 
 	initializeSocket();
 	setCanvasSize(defaultCanvasSize());
