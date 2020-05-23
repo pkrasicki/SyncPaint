@@ -576,9 +576,9 @@ function initializeSocket()
 			document.querySelector(".options-panel input").value = userName;
 			users = roomUsers;
 
-			// if it's the first user in a room set their foreground to white instead of default transparent
+			// if it's the first user in a room set their background to white instead of default transparent
 			if (users.length == 0 && isFirstJoin)
-				setLocalForegroundColor("white");
+				fillBackground();
 
 			isFirstJoin = false;
 			users.forEach(user => createRemoteBrushPreview(user.name, user.id));
@@ -691,12 +691,6 @@ function addCanvasBackgroundImage()
 	const imagePreview = document.querySelector("#bg-image-preview");
 	loadCanvasData(bgCtx, imagePreview.src);
 	socket.emit("receiveBackgroundCanvasAll", imagePreview.src);
-}
-
-function setLocalForegroundColor(color)
-{
-	ctx.fillStyle = color;
-	ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
 function settingsBtnClicked(e)
