@@ -1,4 +1,4 @@
-## ![Logo](public/favicon.ico?raw=true) SyncPaint
+# SyncPaint <img align="left" src="public/img/logo.png?raw=true" alt="Logo" width="40" height="40">
 
 SyncPaint allows multiple users to draw on one canvas at the same time. You can draw together with other people simply by sharing the link to your room.
 
