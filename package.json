@@ -1,6 +1,6 @@
 {
   "name": "syncpaint",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "license": "GPL-3.0-only",
   "description": "A web app for synchronized group drawing",
   "scripts": {
