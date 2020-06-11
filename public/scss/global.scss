@@ -143,6 +143,18 @@ input, button
 	font-size: inherit;
 }
 
+input[type=text], input[type=number]
+{
+	padding: 5px;
+	border: solid white 1px;
+	border-radius: 2px;
+
+	&:focus
+	{
+		border-color: rgb(20, 116, 180);
+	}
+}
+
 .hidden
 {
 	display: none !important;
