@@ -14,20 +14,19 @@ SyncPaint allows multiple users to draw on one canvas at the same time. You can 
 - [Node.js](https://nodejs.org)
 - [Npm](https://www.npmjs.com)
 
-## Building
+## Build from source
 ```
 npm install
 npm run build
 ```
+For a production build use `npm run build-prod`.
 
-## Running locally
-`node app.js`
+## Run
+Run `node app.js` to start the app. Then navigate to `http://localhost:3000`.
 
-It will create a server on `localhost:3000`
+Live version is available at: [syncpaint.com](https://syncpaint.com).
 
-Live version is available at [syncpaint.com](https://syncpaint.com).
-
-## Docker
+## Build and run with Docker
 
 ```
 docker build . -t syncpaint:latest
