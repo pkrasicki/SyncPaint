@@ -16,6 +16,7 @@ import {DrawingData} from "./models/drawing-data";
 import {Slider} from "./components/slider/slider";
 import {BackgroundModal} from "./components/background-modal/background-modal";
 import {Vector} from "./models/vector";
+import FillWorker from "worker-loader!./fill-worker.js";
 
 const CANVAS_SIZE = 0.9;
 const CANVAS_SIZE_MEDIUM = 0.85;
@@ -377,15 +378,45 @@ function draw(drawingData)
 	ctx.shadowBlur = drawingData.tool.blur;
 	ctx.shadowColor = drawingData.tool.color;
 
-	if (drawingData.text != null && drawingData.text != "")
+	const posX = drawingData.startPos.x;
+	const posY = drawingData.startPos.y;
+
+	if (drawingData.text != null && drawingData.text != "") // text tool
 	{
 		ctx.font = `${drawingData.tool.size}px sans-serif`;
 		ctx.fillStyle = drawingData.tool.color;
-		ctx.fillText(drawingData.text, drawingData.startPos.x, drawingData.startPos.y);
-	} else if (drawingData.fill)
+		ctx.fillText(drawingData.text, posX, posY);
+
+	} else if (drawingData.fill) // fill tool
 	{
+		const width = ctx.canvas.clientWidth;
+		const height = ctx.canvas.clientHeight;
+		let imageData = ctx.getImageData(0, 0, width, height);
 		let fillTool = new Fill(drawingData.tool.size, drawingData.tool.color);
-		fillTool.fill(ctx, drawingData.startPos.x, drawingData.startPos.y);
+		let fillData = fillTool.getFillData(posX, posY, width, height, imageData);
+
+		if (fillData == null)
+			return;
+
+		if (window.Worker)
+		{
+			if (!canvas.classList.contains("progress"))
+				canvas.classList.add("progress");
+
+			let worker = new FillWorker();
+			worker.postMessage([width, height, posX, posY, imageData, fillData[0], fillData[1]]);
+			worker.onmessage = (e) =>
+			{
+				ctx.putImageData(e.data, 0, 0); // update canvas
+				canvas.classList.remove("progress");
+			};
+
+		} else
+		{
+			Fill.fillPixels([width, height, posX, posY, imageData, fillData[0], fillData[1]]);
+			ctx.putImageData(imageData, 0, 0); // update canvas
+		}
+
 	} else
 	{
 		ctx.beginPath();

@@ -30,7 +30,8 @@
     "optimize-css-assets-webpack-plugin": "^5.0.4",
     "sass-loader": "^7.3.1",
     "webpack": "^4.44.1",
-    "webpack-cli": "^3.3.12"
+    "webpack-cli": "^3.3.12",
+    "worker-loader": "^3.0.2"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^5.14.0",
