@@ -31,17 +31,31 @@ export class Fill extends Tool
 
 	static areColorsEqual(color1, color2)
 	{
-		return color1[0] == color2[0] && color1[1] == color2[1] &&
-			color1[2] == color2[2] && color1[3] == color2[3];
+		return color1[0] == color2[0]
+			&& color1[1] == color2[1]
+			&& color1[2] == color2[2]
+			&& color1[3] == color2[3];
+	}
+
+	// tolerance is needed to fill pencil drawn shapes because of canvas bug in browsers:
+	// https://bugzilla.mozilla.org/show_bug.cgi?id=1666100
+	// it still doesn't fill brush drawn shapes because of its shadow
+	static areColorsSimilar(color1, color2)
+	{
+		const tolerance = 6;
+		const difference = Math.abs(color1[0] - color2[0]) + Math.abs(color1[1] - color2[1])
+						+ Math.abs(color1[2] - color2[2]) + Math.abs(color1[3] - color2[3]);
+
+		return difference <= tolerance;
 	}
 
 	static pixelNeedsUpdate(x, y, width, height, imageData, curColor, colorToReplace)
 	{
-		if (x < 0 || y < 0 || x > width || y > height)
+		if (x < 0 || y < 0 || x >= width || y >= height)
 			return false;
 
 		let pixelColor = this.getPixelColor(x, y, imageData);
-		if (this.areColorsEqual(pixelColor, curColor) || !this.areColorsEqual(pixelColor, colorToReplace))
+		if (this.areColorsSimilar(pixelColor, curColor) || !this.areColorsSimilar(pixelColor, colorToReplace))
 			return false;
 
 		return true;
@@ -49,24 +63,35 @@ export class Fill extends Tool
 
 	static fillPixels(width, height, posX, posY, imageData, curColor, colorToReplace)
 	{
-		let pixels = [posX, posY]
+		let pixels = new Uint32Array(width*height*8);
+		pixels[0] = posX;
+		pixels[1] = posY;
+		let queueLength = 2;
+
 		for (let i = 0; i < pixels.length - 1; i+=2)
 		{
+			if (i > queueLength)
+				break;
+
 			if (this.pixelNeedsUpdate(pixels[i], pixels[i+1], width, height, imageData, curColor, colorToReplace))
 			{
 				this.setPixelColor(pixels[i], pixels[i+1], imageData, curColor);
 
-				pixels.push(pixels[i] - 1);
-				pixels.push(pixels[i+1]);
+				pixels[queueLength] = pixels[i] - 1; // go left
+				pixels[queueLength+1] = pixels[i+1];
+				queueLength += 2;
 
-				pixels.push(pixels[i]);
-				pixels.push(pixels[i+1] - 1);
+				pixels[queueLength] = pixels[i];
+				pixels[queueLength+1] = pixels[i+1] - 1; // go up
+				queueLength += 2;
 
-				pixels.push(pixels[i] + 1);
-				pixels.push(pixels[i+1]);
+				pixels[queueLength] = pixels[i] + 1; // go right
+				pixels[queueLength+1] = pixels[i+1];
+				queueLength += 2;
 
-				pixels.push(pixels[i]);
-				pixels.push(pixels[i+1] + 1);
+				pixels[queueLength] = pixels[i];
+				pixels[queueLength+1] = pixels[i+1] + 1; // go down
+				queueLength += 2;
 			}
 		}
 	}
