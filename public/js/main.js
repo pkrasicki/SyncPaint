@@ -16,7 +16,7 @@ import {DrawingData} from "./models/drawing-data";
 import {Slider} from "./components/slider/slider";
 import {BackgroundModal} from "./components/background-modal/background-modal";
 import {Vector} from "./models/vector";
-import FillWorker from "worker-loader!./fill-worker.js";
+import FillWorker from "./fill.worker.js";
 
 const CANVAS_SIZE = 0.9;
 const CANVAS_SIZE_MEDIUM = 0.85;

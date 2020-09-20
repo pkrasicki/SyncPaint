@@ -69,6 +69,17 @@ module.exports =
 						name: "[name].[ext]"
 					}
 				}
+			},
+			{
+				test: /\.worker\.js$/,
+				use:
+				{
+					loader: "worker-loader",
+					options:
+					{
+						filename: "[name].js"
+					}
+				}
 			}
 		]
 	},
