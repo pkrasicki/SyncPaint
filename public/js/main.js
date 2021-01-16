@@ -35,8 +35,7 @@ let paintTool = getTool(DEFAULT_PAINT_TOOL, DEFAULT_BRUSH_SIZE, DEFAULT_PAINT_CO
 let drawingStartPos = new Vector();
 let drawingEndPos = new Vector();
 let isSavingCanvas = false;
-let sliderMousePressed = false;
-let lastSelectedSlider;
+let lastSelectedSlider = null;
 let touchJustEnded = false;
 let isFirstJoin = true;
 let cursorMoved = false;
@@ -347,7 +346,7 @@ function canvasMouseUp(e)
 	}
 
 	isDrawing = false;
-	sliderMousePressed = false;
+	lastSelectedSlider = null;
 }
 
 function canvasTouchEnded(e)
@@ -760,73 +759,22 @@ function windowResized()
 	document.querySelector(".options-panel").style.visibility = "hidden";
 	brushSizeMenu.style.visibility = "hidden";
 
-	// there are two size sliders but only one is displayed at the time
+	// there are two size sliders but only one is displayed at a time
 	// which slider is displayed depends on window size
 	// we don't know if any of them just became visible/invisible so update both with every window resize
 	document.querySelectorAll(".size-slider").forEach((slider) =>
 	{
-		Slider.updatePosition(slider.querySelector(".slider-fg"), paintTool.size);
+		slider.update(null, paintTool.size);
 	});
 
 	repositionCanvas();
 	updateTextCursorPos();
 }
 
-// slider value changed by user
-function sizeSliderChanged(e)
-{
-	let posX;
-
-	if (e.type == "touchmove")
-	{
-		posX = e.touches[0].clientX;
-	} else
-	{
-		posX = e.clientX;
-	}
-	
-	let size = Slider.update(lastSelectedSlider, posX);
-	sizeValueSpan.innerHTML = size + "px";
-	paintTool.setSize(size);
-	updateBrushPreview();
-}
-
-// make sliders usable
-function initSliders()
-{
-	document.querySelectorAll(".size-slider").forEach((slider) =>
-	{
-		slider.dataset.value = DEFAULT_BRUSH_SIZE;
-		slider.addEventListener("click", sizeSliderChanged);
-	});
-
-	document.querySelectorAll(".slider").forEach((slider) =>
-	{
-		Slider.init(slider);
-		slider.addEventListener("mousedown", (e) =>
-		{
-			lastSelectedSlider = e.currentTarget;
-			sliderMousePressed = true;
-		});
-
-		slider.addEventListener("touchstart", (e) =>
-		{
-			lastSelectedSlider = e.currentTarget;
-			sliderMousePressed = true;
-		});
-
-		slider.addEventListener("touchmove", (e) =>
-		{
-			if (sliderMousePressed)
-				sizeSliderChanged(e);
-		});
-	});
-}
-
 function windowMouseMoved(e)
 {
-	if (sliderMousePressed)
-		sizeSliderChanged(e);
+	if (lastSelectedSlider)
+		lastSelectedSlider.update(e);
 }
 
 function keyPressed(e)
@@ -972,6 +920,21 @@ function fillBackground()
 	socket.emit("receiveBackgroundCanvasAll", bgCanvas.toDataURL("image/png"));
 }
 
+function initSizeSliders()
+{
+	document.querySelectorAll(".size-slider").forEach((slider) =>
+	{
+		slider.update(null, DEFAULT_BRUSH_SIZE);
+		slider.addEventListener("change", (e) =>
+		{
+			let size = Number(e.target.getValue());
+			sizeValueSpan.innerHTML = size + "px";
+			paintTool.setSize(size);
+			updateBrushPreview();
+		});
+	});
+}
+
 window.addEventListener("load", () =>
 {
 	canvas = document.querySelector("#drawArea");
@@ -1027,5 +990,19 @@ window.addEventListener("load", () =>
 	setCanvasSize(defaultCanvasSize());
 	initToolbarIcons(toolbar);
 	createLocalBrushPreview();
-	initSliders();
+
+	// create components
+	customElements.define("ui-slider", Slider);
+
+	initSizeSliders();
+	document.querySelectorAll("ui-slider").forEach((slider) =>
+	{
+		const sliderUsed = () =>
+		{
+			lastSelectedSlider = slider
+		};
+
+		slider.addEventListener("mousedown", sliderUsed);
+		slider.addEventListener("touchstart", sliderUsed);
+	});
 });

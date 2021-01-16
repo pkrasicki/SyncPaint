@@ -1,0 +1,16 @@
+$primaryColor: rgb(27, 134, 206);
+$primaryColorDark: rgb(16, 110, 172);
+$primaryColorLight: rgb(49, 143, 206);
+$linkColorLight: lighten($primaryColorLight, 15);
+$dark: #333;
+$darker: darken($dark, 5);
+$light: rgba(255, 255, 255, 0.8);
+$lightHover: rgba(255, 255, 255, 0.9);
+$disabledColor: rgba(255, 255, 255, 0.5);
+$disabledColorHover: rgba(255, 255, 255, 0.6);
+$btnFontSize: 26px;
+$navFontSize: 16px;
+$brightnessFilterAmount: 1.5;
+$warningColor: rgb(230, 118, 44);
+$warningColorLight: rgb(228, 136, 76);
+$warningColorDark: rgb(192, 99, 37);

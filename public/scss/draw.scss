@@ -500,42 +500,6 @@ canvas.progress
 	text-shadow: 1px 1px 0px black;
 }
 
-.slider
-{
-	width: 150px;
-	padding: 0;
-	margin-left: 20px;
-	background: $darker;
-
-	.slider-fg
-	{
-		display: flex;
-		flex-direction: row;
-		justify-content: space-between;
-		height: 25px;
-		background: none;
-		cursor: pointer;
-	}
-
-	span
-	{
-		display: inline-block;
-		z-index: 1;
-		padding: 2px 5px;
-		pointer-events: none;
-		color: rgba(255, 255, 255, 0.9);
-	}
-
-	.slider-bg
-	{
-		background: $primaryColorDark;
-		height: 25px;
-		width: 0px;
-		position: absolute;
-		pointer-events: none;
-	}
-}
-
 .text-cursor
 {
 	position: absolute;
@@ -546,6 +510,11 @@ canvas.progress
 	width: 1px;
 	z-index: 1;
 	animation: cursor-blink 1s infinite steps(2, jump-none);
+}
+
+#size-slider-main
+{
+	margin-left: 20px;
 }
 
 @keyframes notif
@@ -569,7 +538,7 @@ canvas.progress
 		display: none;
 	}
 
-	.nav-slider
+	#size-slider-main
 	{
 		display: none;
 	}

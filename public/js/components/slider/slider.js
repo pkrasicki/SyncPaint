@@ -1,50 +1,112 @@
-export class Slider
+import htmlTemplate from "html-loader!./slider.html";
+import stylesheet from "./slider.scss";
+
+export class Slider extends HTMLElement
 {
-	static init(slider)
+	constructor()
 	{
-		var name = slider.dataset.name;
-		var value = slider.dataset.value;
-		var sliderFg = slider.querySelector(".slider-fg");
-		sliderFg.querySelector("span:nth-child(1)").innerHTML = name;
-		this.updatePosition(sliderFg, value);
+		super();
+		this.attachShadow({mode: "open"});
+
+		// default values for slider properties
+		const defaultValue = 0;
+		const defaultMinValue = 0;
+		const defaultMaxValue = 10;
+		const defaultText = "";
+		const defaultUnit = "";
+
+		if (!this.hasAttribute("data-value"))
+			this.setValue(defaultValue);
+
+		if (!this.hasAttribute("data-min-value"))
+			this.setAttribute("data-min-value", defaultMinValue);
+
+		if (!this.hasAttribute("data-max-value"))
+			this.setAttribute("data-max-value", defaultMaxValue);
+
+		if (!this.hasAttribute("data-text"))
+			this.setAttribute("data-text", defaultText);
+
+		if (!this.hasAttribute("data-unit"))
+			this.setAttribute("data-unit", defaultUnit);
+
+		const element = document.createElement("template");
+		element.innerHTML = htmlTemplate;
+		const styleElement = document.createElement("style");
+		styleElement.innerHTML = stylesheet.toString();
+		this.shadowRoot.append(styleElement);
+		this.shadowRoot.append(element.content.cloneNode(true));
+
+		const sliderFg = this.shadowRoot.querySelector(".slider-fg");
+		sliderFg.querySelector("span.text").innerHTML = this.getAttribute("data-text");
+
+		this.update(); // draw slider based on initial values
+
+		this.addEventListener("click", this.update);
+		this.addEventListener("touchmove", this.update);
 	}
 
-	// calculates and updates slider's value based on user's mouse position
-	// returns new value
-	static update(slider, mousePosX)
+	sliderPosFromValue(value)
 	{
-		var sliderFg = slider.querySelector(".slider-fg");
-		var minValue = slider.dataset.min;
-		var maxValue = slider.dataset.max;
-
-		var rect = sliderFg.getBoundingClientRect();
-		var relativeMousePos = mousePosX - rect.left;
-		var sliderPos = relativeMousePos / rect.width;
-		var value = Math.min(Math.max(minValue, Math.round(sliderPos * maxValue / rect.width * rect.width)), maxValue);
-
-		slider.dataset.value = value;
-		this.updatePosition(sliderFg, value, sliderPos, rect);
-
-		return value;
+		const maxValue = Number(this.getAttribute("data-max"));
+		if (value > 0)
+			return value / maxValue;
+		else
+			return 0;
 	}
 
-	// updates slider's visuals: displayed value and background position
-	static updatePosition(sliderFg, value, sliderPos=null, rect=null)
+	// calculates and updates slider's value and position
+	update(e=null, value=null)
 	{
-		var sliderRoot = sliderFg.parentElement;
-		var unit = sliderRoot.dataset.unit;
-		var minValue = sliderRoot.dataset.min;
-		var maxValue = sliderRoot.dataset.max;
+		const minValue = Number(this.getAttribute("data-min"));
+		const maxValue = Number(this.getAttribute("data-max"));
+		const unit = this.getAttribute("data-unit");
+		const sliderFg = this.shadowRoot.querySelector(".slider-fg");
+		const rect = sliderFg.getBoundingClientRect();
+		let newSliderPos;
 
-		if (sliderPos == null || rect == null)
+		if (rect.width == 0) // this can happen when element is invisible
+			return;
+
+		if (e != null) // update slider based on user input
 		{
-			rect = sliderFg.getBoundingClientRect();
-			sliderPos = value / maxValue;
+			let mousePosX;
+
+			if (e.type == "touchmove")
+				mousePosX = e.touches[0].clientX;
+			else
+				mousePosX = e.clientX;
+
+			const relativeMousePos = mousePosX - rect.left;
+			newSliderPos = relativeMousePos / rect.width;
+
+		} else if (value != null) // update with specified value
+		{
+			newSliderPos = this.sliderPosFromValue(value);
+
+		} else // update slider using current value from data-value attribute
+		{
+			let val = Number(this.getAttribute("data-value"));
+			newSliderPos = this.sliderPosFromValue(val);
 		}
 
-		var newBgWidth = Math.min(Math.max(minValue, Math.round(sliderPos * rect.width)), rect.width);
+		const newValue = Math.min(Math.max(minValue, Math.round(newSliderPos * maxValue / rect.width * rect.width)), maxValue);
+		this.setValue(newValue);
 
-		sliderFg.querySelector("span:nth-child(2)").innerHTML = value + unit;
+		const newBgWidth = Math.min(Math.max(minValue, Math.round(newSliderPos * rect.width)), rect.width);
+		sliderFg.querySelector("span.value-text").innerHTML = newValue + unit;
 		sliderFg.querySelector(".slider-bg").style.width = newBgWidth + "px";
+
+		this.dispatchEvent(new Event("change"));
+	}
+
+	getValue()
+	{
+		return this.getAttribute("data-value");
+	}
+
+	setValue(value)
+	{
+		this.setAttribute("data-value", value);
 	}
 }

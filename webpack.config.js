@@ -27,7 +27,15 @@ module.exports =
 		rules:
 		[
 			{
-				test: /\.(css|scss)$/,
+				test: /public\/js\/components\/.*\.scss$/,
+				use:
+				[
+					"css-loader",
+					"sass-loader"
+				]
+			},
+			{
+				test: /public\/scss\/.*\.scss$/,
 				use:
 				[
 					{
@@ -35,6 +43,16 @@ module.exports =
 					},
 					"css-loader",
 					"sass-loader"
+				]
+			},
+			{
+				test: /\.css$/,
+				use:
+				[
+					{
+						loader: MiniCssExtract.loader
+					},
+					"css-loader"
 				]
 			},
 			{

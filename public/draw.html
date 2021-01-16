@@ -19,15 +19,11 @@
 						<a href="#" class="btn-nav brush-size" ondragstart="return false;">
 							<span class="size-value" title="Change brush size">20px</span> <span>&#8597;</span>
 							<div class="brush-size-menu">
-								<div class="slider size-slider" data-name="Size:" data-min="1" data-max="200" data-unit="px" oncontextmenu="return false;">
-									<%= require('html-loader!./js/components/slider/slider.html') %>
-								</div>
+								<ui-slider id="size-slider-mobile" class="size-slider" data-text="Size:" data-min="1" data-max="200" data-unit="px"></ui-slider>
 							</div>
 						</a>
 
-						<div class="slider size-slider nav-slider" data-name="Size:" data-min="1" data-max="200" data-unit="px" oncontextmenu="return false;">
-							<%= require('html-loader!./js/components/slider/slider.html') %>
-						</div>
+						<ui-slider id="size-slider-main" class="size-slider" data-text="Size:" data-min="1" data-max="200" data-unit="px"></ui-slider>
 					</div>
 				</li>
 

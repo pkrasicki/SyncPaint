@@ -1,0 +1,44 @@
+@import "/public/scss/vars";
+
+.slider
+{
+	width: 150px;
+	padding: 0;
+	background: $darker;
+
+	.slider-fg
+	{
+		display: flex;
+		flex-direction: row;
+		justify-content: space-between;
+		height: 25px;
+		background: none;
+		cursor: pointer;
+	}
+
+	span
+	{
+		display: inline-block;
+		z-index: 1;
+		padding: 2px 5px;
+		pointer-events: none;
+		color: rgba(255, 255, 255, 0.9);
+	}
+
+	.slider-bg
+	{
+		background: $primaryColorDark;
+		height: 25px;
+		width: 0px;
+		position: absolute;
+		pointer-events: none;
+	}
+}
+
+.brush-size-menu
+{
+	.slider
+	{
+		margin: 0 auto;
+	}
+}
