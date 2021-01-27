@@ -25,6 +25,7 @@ textarea.clibpoard
 	user-select: none;
 	-moz-user-select: none;
 	-webkit-user-select: none;
+	touch-action: none; // prevent accidental scrolling on touch screen
 
 	ul
 	{
@@ -200,6 +201,7 @@ main
 canvas
 {
 	position: absolute;
+	touch-action: none; // prevent accidental scrolling on touch screen
 }
 
 canvas.progress
@@ -227,6 +229,7 @@ canvas.progress
 	color: $light;
 	font-size: 26px;
 	grid-column: 1;
+	touch-action: none; // prevent accidental scrolling on touch screen
 
 	.separator
 	{
