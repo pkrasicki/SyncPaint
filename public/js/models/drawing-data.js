@@ -1,5 +1,3 @@
-export {DrawingData};
-
 // drawing data sent through the websocket
 class DrawingData
 {
@@ -12,3 +10,5 @@ class DrawingData
 		this.fill = fill;
 	}
 }
+
+export default DrawingData;

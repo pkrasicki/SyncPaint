@@ -1,6 +1,6 @@
-import {Modal} from "../modal/modal";
+import Modal from "../modal/modal";
 
-export class BackgroundModal extends Modal
+class BackgroundModal extends Modal
 {
 	constructor(id)
 	{
@@ -148,3 +148,5 @@ export class BackgroundModal extends Modal
 		this.element.querySelector("#bg-clear").addEventListener("click", callback);
 	}
 }
+
+export default BackgroundModal;

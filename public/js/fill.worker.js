@@ -1,4 +1,4 @@
-import {Fill} from "./tools/fill";
+import Fill from "./tools/fill";
 
 onmessage = (e) =>
 {

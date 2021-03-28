@@ -1,5 +1,4 @@
-import {Tool} from "./tool";
-export {Pencil};
+import Tool from "./tool";
 
 class Pencil extends Tool
 {
@@ -8,3 +7,5 @@ class Pencil extends Tool
 		super("round", size, color, 0);
 	}
 }
+
+export default Pencil;

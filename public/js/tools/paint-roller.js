@@ -1,5 +1,4 @@
-import {Tool} from "./tool";
-export {PaintRoller};
+import Tool from "./tool";
 
 class PaintRoller extends Tool
 {
@@ -8,3 +7,5 @@ class PaintRoller extends Tool
 		super("butt", size, color, 1);
 	}
 }
+
+export default PaintRoller;

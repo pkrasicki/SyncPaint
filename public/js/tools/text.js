@@ -1,5 +1,4 @@
-import {Tool} from "./tool";
-export {Text};
+import Tool from "./tool";
 
 class Text extends Tool
 {
@@ -8,3 +7,5 @@ class Text extends Tool
 		super("round", size, color, 0);
 	}
 }
+
+export default Text;

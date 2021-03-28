@@ -1,5 +1,3 @@
-export {NotificationSystem};
-
 class NotificationSystem
 {
 	constructor()
@@ -21,7 +19,7 @@ class NotificationSystem
 			const numNotifications = this.notifications.length + 1; // existing notifications + the new one we create
 
 			if (numNotifications > maxNotifications)
-				 this.removeOldest();
+				this.removeOldest();
 		});
 
 		// remove after fade animation is finished
@@ -35,7 +33,7 @@ class NotificationSystem
 
 	remove(notification)
 	{
-		var element = notification.getElement();
+		let element = notification.getElement();
 		if (element && document.body.contains(element))
 			document.body.removeChild(element);
 
@@ -44,7 +42,10 @@ class NotificationSystem
 
 	removeOldest()
 	{
-		var oldestNotification = this.notifications.reduce((prev, cur) => prev.dateCreated < cur.dateCreated ? prev : cur);
+		let oldestNotification = this.notifications.reduce((prev, cur) =>
+			prev.dateCreated < cur.dateCreated ? prev : cur);
 		this.remove(oldestNotification);
 	}
 }
+
+export default NotificationSystem;

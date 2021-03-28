@@ -1,7 +1,7 @@
-import {Tool} from "./tool";
-import {Color} from "../models/color";
+import Tool from "./tool";
+import Color from "../models/color";
 
-export class Fill extends Tool
+class Fill extends Tool
 {
 	constructor(size, color)
 	{
@@ -116,3 +116,5 @@ export class Fill extends Tool
 		];
 	}
 }
+
+export default Fill;

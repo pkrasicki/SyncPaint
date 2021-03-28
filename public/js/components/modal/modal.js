@@ -1,4 +1,4 @@
-export class Modal
+class Modal
 {
 	constructor(id)
 	{
@@ -15,7 +15,7 @@ export class Modal
 
 		this.element.addEventListener("click", (e) =>
 		{
-			// close modal when user clicks outside area
+			// close modal when user clicks outside modal area
 			if (e.target == this.element && this.isVisible)
 				this.hide();
 		});
@@ -45,3 +45,5 @@ export class Modal
 			this.show();
 	}
 }
+
+export default Modal;

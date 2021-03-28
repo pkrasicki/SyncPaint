@@ -3,20 +3,20 @@ import "../scss/draw.scss";
 import "lato-font";
 import "../../node_modules/@fortawesome/fontawesome-free/css/all.css";
 import "../favicon.ico";
-import {Brush} from "./tools/brush";
-import {Pencil} from "./tools/pencil";
-import {PaintRoller} from "./tools/paint-roller";
-import {Eraser} from "./tools/eraser";
-import {Text} from "./tools/text";
-import {Fill} from "./tools/fill";
-import {ColorPicker} from "./tools/color-picker";
-import {Notification} from "./notification/notification";
-import {NotificationSystem} from "./notification/notification-system";
-import {DrawingData} from "./models/drawing-data";
-import {Slider} from "./components/slider/slider";
-import {BackgroundModal} from "./components/background-modal/background-modal";
-import {Vector} from "./models/vector";
+import Brush from "./tools/brush";
+import Pencil from "./tools/pencil";
+import PaintRoller from "./tools/paint-roller";
+import Eraser from "./tools/eraser";
+import Text from "./tools/text";
+import Fill from "./tools/fill";
+import ColorPicker from "./tools/color-picker";
+import Notification from "./notification/notification";
+import NotificationSystem from "./notification/notification-system";
+import DrawingData from "./models/drawing-data";
+import BackgroundModal from "./components/background-modal/background-modal";
+import Vector from "./models/vector";
 import FillWorker from "./fill.worker.js";
+import initComponents from "./components";
 
 const CANVAS_SIZE = 0.9;
 const CANVAS_SIZE_MEDIUM = 0.85;
@@ -991,8 +991,7 @@ window.addEventListener("load", () =>
 	initToolbarIcons(toolbar);
 	createLocalBrushPreview();
 
-	// create components
-	customElements.define("ui-slider", Slider);
+	initComponents();
 
 	initSizeSliders();
 	document.querySelectorAll("ui-slider").forEach((slider) =>

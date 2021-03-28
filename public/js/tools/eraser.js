@@ -1,5 +1,4 @@
-import {Tool} from "./tool";
-export {Eraser};
+import Tool from "./tool";
 
 class Eraser extends Tool
 {
@@ -8,3 +7,5 @@ class Eraser extends Tool
 		super("round", size, color, 0, "destination-out");
 	}
 }
+
+export default Eraser;

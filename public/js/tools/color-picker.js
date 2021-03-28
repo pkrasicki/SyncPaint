@@ -1,7 +1,7 @@
-import {Tool} from "./tool";
-import {Color} from "../models/color";
+import Tool from "./tool";
+import Color from "../models/color";
 
-export class ColorPicker extends Tool
+class ColorPicker extends Tool
 {
 	constructor(size, color)
 	{
@@ -22,3 +22,5 @@ export class ColorPicker extends Tool
 		}
 	}
 }
+
+export default ColorPicker;

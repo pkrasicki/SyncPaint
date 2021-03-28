@@ -1,5 +1,3 @@
-export {Notification};
-
 class Notification
 {
 	constructor(text, lifeTimeMs=5000)
@@ -10,7 +8,7 @@ class Notification
 		this.element.classList.add("notification");
 		this.element.style.animation = `notif ${lifeTimeMs}ms`;
 
-		var textNode = document.createTextNode(text); // this will escape HTML so it's safe to use with user names
+		const textNode = document.createTextNode(text); // this will escape HTML so it's safe to use with user names
 		this.element.appendChild(textNode);
 		document.body.appendChild(this.element);
 	}
@@ -20,3 +18,5 @@ class Notification
 		return this.element;
 	}
 }
+
+export default Notification;

@@ -1,5 +1,3 @@
-export {Tool};
-
 class Tool
 {
 	constructor(style, size, color, blur=3, operation="source-over")
@@ -31,3 +29,5 @@ class Tool
 		this.color = color;
 	}
 }
+
+export default Tool;

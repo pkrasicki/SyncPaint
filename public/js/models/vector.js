@@ -1,4 +1,4 @@
-export class Vector
+class Vector
 {
 	constructor(x=0, y=0)
 	{
@@ -6,3 +6,5 @@ export class Vector
 		this.y = y;
 	}
 }
+
+export default Vector;

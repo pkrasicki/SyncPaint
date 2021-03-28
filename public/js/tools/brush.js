@@ -1,5 +1,4 @@
-import {Tool} from "./tool";
-export {Brush};
+import Tool from "./tool";
 
 class Brush extends Tool
 {
@@ -8,3 +7,5 @@ class Brush extends Tool
 		super("round", size, color);
 	}
 }
+
+export default Brush;

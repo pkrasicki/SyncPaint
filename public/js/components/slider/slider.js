@@ -1,12 +1,12 @@
+import Component from "../component/component";
 import htmlTemplate from "html-loader!./slider.html";
 import stylesheet from "./slider.scss";
 
-export class Slider extends HTMLElement
+class Slider extends Component
 {
 	constructor()
 	{
-		super();
-		this.attachShadow({mode: "open"});
+		super(htmlTemplate, stylesheet);
 
 		// default values for slider properties
 		const defaultValue = 0;
@@ -29,13 +29,6 @@ export class Slider extends HTMLElement
 
 		if (!this.hasAttribute("data-unit"))
 			this.setAttribute("data-unit", defaultUnit);
-
-		const element = document.createElement("template");
-		element.innerHTML = htmlTemplate;
-		const styleElement = document.createElement("style");
-		styleElement.innerHTML = stylesheet.toString();
-		this.shadowRoot.append(styleElement);
-		this.shadowRoot.append(element.content.cloneNode(true));
 
 		const sliderFg = this.shadowRoot.querySelector(".slider-fg");
 		sliderFg.querySelector("span.text").innerHTML = this.getAttribute("data-text");
@@ -110,3 +103,5 @@ export class Slider extends HTMLElement
 		this.setAttribute("data-value", value);
 	}
 }
+
+export default Slider;
