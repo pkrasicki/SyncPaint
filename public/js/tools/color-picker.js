@@ -1,11 +1,12 @@
 import Tool from "./tool";
 import Color from "../models/color";
+import ToolType from "../models/tool-type";
 
 class ColorPicker extends Tool
 {
 	constructor(size, color)
 	{
-		super("round", size, color);
+		super(ToolType.COLOR_PICKER, "round", size, color);
 	}
 
 	getPixelColor(ctx, bgCtx, posX, posY)

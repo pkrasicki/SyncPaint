@@ -1,11 +1,12 @@
 import Tool from "./tool";
 import Color from "../models/color";
+import ToolType from "../models/tool-type";
 
 class Fill extends Tool
 {
 	constructor(size, color)
 	{
-		super("round", size, color);
+		super(ToolType.FILL, "round", size, color);
 	}
 
 	static getImageDataOffset(posX, posY, imageData)

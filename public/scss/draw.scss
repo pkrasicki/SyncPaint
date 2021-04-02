@@ -219,6 +219,12 @@ canvas.progress
 	z-index: 1;
 }
 
+#shapePreview
+{
+	z-index: 1;
+	pointer-events: none;
+}
+
 .notification
 {
 	background: rgba(0,0,0,0.6);

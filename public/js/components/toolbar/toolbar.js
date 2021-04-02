@@ -1,6 +1,7 @@
 import Component from "../component/component";
 import htmlTemplate from "html-loader!./toolbar.html";
 import stylesheet from "./toolbar.scss";
+import ToolType from "../../models/tool-type";
 
 class Toolbar extends Component
 {
@@ -18,13 +19,14 @@ class Toolbar extends Component
 		toolIcons.forEach(icon =>
 		{
 			const listItem = icon.parentElement;
-			if (!isDefaultToolFound && listItem.dataset.tooltype == defaultTool)
+			const toolType = ToolType[listItem.dataset.toolname];
+			if (!isDefaultToolFound && toolType == defaultTool)
 			{
 				this.setSelectedTool(icon);
 				isDefaultToolFound = true;
 			}
 
-			if (listItem.dataset.tooltype == "BackgroundImage")
+			if (listItem.dataset.toolname == "BACKGROUND_IMAGE")
 				listItem.addEventListener("click", (e) => this.bgSelectionClicked(e));
 			else if (!icon.classList.contains("disabled"))
 				listItem.addEventListener("click", (e) => this.toolSwitched(e));
@@ -78,9 +80,10 @@ class Toolbar extends Component
 	// tool icon clicked
 	toolSwitched(e)
 	{
-		const type = e.currentTarget.dataset.tooltype;
+		const toolName = e.currentTarget.dataset.toolname;
+		const toolType = ToolType[toolName];
 		this.setSelectedTool(e.target);
-		this.dispatchEvent(new CustomEvent("toolSwitch", {detail: type}));
+		this.dispatchEvent(new CustomEvent("toolSwitch", {detail: toolType}));
 	}
 
 	// color button clicked

@@ -2,13 +2,12 @@ import "../scss/main.scss";
 import "../scss/draw.scss";
 import "lato-font";
 import "../favicon.ico";
-import Brush from "./tools/brush";
-import Pencil from "./tools/pencil";
-import PaintRoller from "./tools/paint-roller";
-import Eraser from "./tools/eraser";
+import ToolType from "./models/tool-type";
+import toolFromType from "./tools/tool-from-type";
 import Text from "./tools/text";
 import Fill from "./tools/fill";
 import ColorPicker from "./tools/color-picker";
+import Rect from "./tools/rect";
 import Notification from "./notification/notification";
 import NotificationSystem from "./notification/notification-system";
 import DrawingData from "./models/drawing-data";
@@ -24,13 +23,13 @@ const MEDIUM_SIZE_PX = 550;
 const SMALL_SIZE_PX = 420;
 const DEFAULT_BRUSH_SIZE = 20;
 const DEFAULT_PAINT_COLOR = "#000000";
-const DEFAULT_PAINT_TOOL = "Brush";
+const DEFAULT_PAINT_TOOL = ToolType.BRUSH;
 const NET_CURSOR_UPDATE_INTERVAL_MS = 50;
 const notificationSystem = new NotificationSystem();
-let canvas, socket, ctx, bgCtx, colorSelector, backgroundSelectionModal, sizeValueSpan,
-	brushSizeMenu, roomUrlLink, toolbar;
+let canvas, socket, ctx, bgCanvas, bgCtx, colorSelector, backgroundSelectionModal, sizeValueSpan,
+	brushSizeMenu, roomUrlLink, toolbar, shapePreviewCanvas, shapePreviewCtx;
 let isDrawing = false;
-let paintTool = getTool(DEFAULT_PAINT_TOOL, DEFAULT_BRUSH_SIZE, DEFAULT_PAINT_COLOR);
+let paintTool = toolFromType(DEFAULT_PAINT_TOOL, DEFAULT_BRUSH_SIZE, DEFAULT_PAINT_COLOR);
 let drawingStartPos = new Vector();
 let drawingEndPos = new Vector();
 let isSavingCanvas = false;
@@ -73,22 +72,26 @@ function repositionCanvas()
 	{
 		canvas.style.left = "0px";
 		bgCanvas.style.left = "0px";
+		shapePreviewCanvas.style.left = "0px";
 
 	} else
 	{
 		canvas.style.left = "initial";
 		bgCanvas.style.left = "initial";
+		shapePreviewCanvas.style.left = "initial";
 	}
 
 	if (canvas.height > canvasLayersRect.height)
 	{
 		canvas.style.top = "0px";
 		bgCanvas.style.top = "0px";
+		shapePreviewCanvas.style.top = "0px";
 
 	} else
 	{
 		canvas.style.top = "initial";
 		bgCanvas.style.top = "initial";
+		shapePreviewCanvas.style.top = "initial";
 	}
 }
 
@@ -100,6 +103,8 @@ function setCanvasSize(size)
 	canvas.width = size.width;
 	bgCanvas.height = size.height;
 	bgCanvas.width = size.width;
+	shapePreviewCanvas.height = size.height;
+	shapePreviewCanvas.width = size.width;
 	repositionCanvas();
 	loadCanvasData(ctx, canvasData);
 	loadCanvasData(bgCtx, bgData);
@@ -123,7 +128,7 @@ function loadCanvasData(ctx, canvasData)
 
 function paintToolSwitched(e)
 {
-	paintTool = getTool(e.detail, paintTool.size, paintTool.color);
+	paintTool = toolFromType(e.detail, paintTool.size, paintTool.color);
 	updateBrushPreview();
 }
 
@@ -148,30 +153,6 @@ function paintColorChanged(e, color=null)
 
 	paintTool.setColor(color);
 	updateBrushPreview();
-}
-
-// get tool object by name
-function getTool(toolName, size, color)
-{
-	if (toolName == "Brush")
-		return new Brush(size, color);
-	else if (toolName == "PaintRoller")
-		return new PaintRoller(size, color);
-	else if (toolName == "Pencil")
-		return new Pencil(size, color);
-	else if (toolName == "Eraser")
-		return new Eraser(size, color);
-	else if (toolName == "Text")
-		return new Text(size, color);
-	else if (toolName == "Fill")
-		return new Fill(size, color);
-	else if (toolName == "ColorPicker")
-		return new ColorPicker(size, color);
-	else
-	{
-		console.error("wrong tool name:", toolName);
-		return null;
-	}
 }
 
 function roomUrlClicked(e)
@@ -235,11 +216,25 @@ function canvasMouseMoved(e)
 
 			updateDrawingPos(null, new Vector(posX, posY));
 
-			const drawingData = new DrawingData(drawingStartPos, drawingEndPos, paintTool);
-			draw(drawingData);
-			socket.emit("draw", drawingData);
+			if (paintTool instanceof Rect == false)
+			{
+				const drawingData = new DrawingData(drawingStartPos, drawingEndPos, paintTool);
+				draw(drawingData);
+				socket.emit("draw", drawingData);
 
-			updateDrawingPos(new Vector(posX, posY), null);
+				updateDrawingPos(new Vector(posX, posY), null);
+			}
+		}
+
+		if (paintTool instanceof Rect)
+		{
+			setContextProperties(shapePreviewCtx, paintTool);
+			shapePreviewCtx.clearRect(0, 0, shapePreviewCtx.canvas.width, shapePreviewCtx.canvas.height);
+
+			let rect = new Rect(paintTool.size, paintTool.color);
+			let posX = e.offsetX;
+			let posY = e.offsetY;
+			rect.draw(shapePreviewCtx, drawingStartPos.x, drawingStartPos.y, posX, posY);
 		}
 	}
 }
@@ -281,12 +276,30 @@ function canvasTouchStart(e)
 }
 
 // handles mouse up and touch end
-function canvasMouseUp(e)
+function windowMouseUp(e)
 {
 	if (e.type == "mouseup" && touchJustEnded)
 	{
 		touchJustEnded = false;
 		return;
+	}
+
+	if (isDrawing && paintTool instanceof Rect)
+	{
+		// clear preview
+		shapePreviewCtx.clearRect(0, 0, shapePreviewCtx.canvas.width, shapePreviewCtx.canvas.height);
+
+		let posX = e.offsetX;
+		let posY = e.offsetY;
+
+		if (e.target.tagName == "CANVAS")
+		{
+			updateDrawingPos(null, new Vector(posX, posY));
+		}
+
+		const drawingData = new DrawingData(drawingStartPos, drawingEndPos, paintTool);
+		draw(drawingData);
+		socket.emit("draw", drawingData);
 	}
 
 	isDrawing = false;
@@ -295,7 +308,7 @@ function canvasMouseUp(e)
 
 function canvasTouchEnded(e)
 {
-	canvasMouseUp(e);
+	windowMouseUp(e);
 	touchJustEnded = true;
 }
 
@@ -312,25 +325,30 @@ function canvasMouseOut()
 	document.querySelector("#local-brush-preview").style.visibility = "hidden";
 }
 
+function setContextProperties(context, tool)
+{
+	context.globalCompositeOperation = tool.operation;
+	context.lineWidth = tool.size;
+	context.lineCap = tool.style;
+	context.strokeStyle = tool.color;
+	context.shadowBlur = tool.blur;
+	context.shadowColor = tool.color;
+}
+
 function draw(drawingData)
 {
-	ctx.globalCompositeOperation = drawingData.tool.operation;
-	ctx.lineWidth = drawingData.tool.size;
-	ctx.lineCap = drawingData.tool.style;
-	ctx.strokeStyle = drawingData.tool.color;
-	ctx.shadowBlur = drawingData.tool.blur;
-	ctx.shadowColor = drawingData.tool.color;
+	setContextProperties(ctx, drawingData.tool);
 
 	const posX = drawingData.startPos.x;
 	const posY = drawingData.startPos.y;
 
-	if (drawingData.text != null && drawingData.text != "") // text tool
+	if (drawingData.tool.type == ToolType.TEXT && drawingData.text != null && drawingData.text != "")
 	{
 		ctx.font = `${drawingData.tool.size}px sans-serif`;
 		ctx.fillStyle = drawingData.tool.color;
 		ctx.fillText(drawingData.text, posX, posY);
 
-	} else if (drawingData.fill) // fill tool
+	} else if (drawingData.tool.type == ToolType.FILL)
 	{
 		const width = ctx.canvas.clientWidth;
 		const height = ctx.canvas.clientHeight;
@@ -360,6 +378,11 @@ function draw(drawingData)
 			ctx.putImageData(imageData, 0, 0); // update canvas
 		}
 
+	} else if (drawingData.tool.type == ToolType.RECT)
+	{
+		let rect = new Rect(drawingData.tool.size, drawingData.tool.color);
+		rect.draw(ctx, posX, posY, drawingData.endPos.x, drawingData.endPos.y);
+
 	} else
 	{
 		ctx.beginPath();
@@ -376,7 +399,7 @@ function drawSinglePoint(posX, posY)
 
 	if (paintTool instanceof Fill)
 	{
-		let drawingData = new DrawingData(drawingStartPos, drawingEndPos, paintTool, null, true);
+		let drawingData = new DrawingData(drawingStartPos, drawingEndPos, paintTool);
 		draw(drawingData);
 		socket.emit("draw", drawingData);
 
@@ -385,7 +408,11 @@ function drawSinglePoint(posX, posY)
 		let color = paintTool.getPixelColor(ctx, bgCtx, posX, posY);
 		paintColorChanged(null, color);
 
-	} else if (paintTool instanceof Text == false) // regular drawing tools
+	} else if (paintTool instanceof Rect)
+	{
+		isDrawing = true;
+
+	} else if (paintTool instanceof Text == false) // other drawing tools
 	{
 		isDrawing = true;
 		let drawingData = new DrawingData(drawingStartPos, drawingEndPos, paintTool);
@@ -455,7 +482,7 @@ function updateBrushPreview()
 		document.querySelector(".text-cursor").style.height = `${size}px`;
 		updateTextCursorPos();
 
-	} else if (paintTool instanceof Fill || paintTool instanceof ColorPicker)
+	} else if (paintTool instanceof Fill || paintTool instanceof ColorPicker || paintTool instanceof Rect)
 	{
 		brushPreview.style.display = "none";
 		canvas.style.cursor = "crosshair";
@@ -886,8 +913,11 @@ window.addEventListener("load", () =>
 		return;
 
 	ctx = canvas.getContext("2d");
-	const bgCanvas = document.querySelector("#bgCanvas");
+	bgCanvas = document.querySelector("#bgCanvas");
 	bgCtx = bgCanvas.getContext("2d");
+	shapePreviewCanvas = document.querySelector("#shapePreview");
+	shapePreviewCtx = shapePreviewCanvas.getContext("2d");
+
 	roomUrlLink = document.querySelector("#room-url");
 	const saveBtn = document.querySelector("#save");
 	colorSelector = document.querySelector("#color-selector");
@@ -899,8 +929,8 @@ window.addEventListener("load", () =>
 	const nameInput = document.querySelector(".options-panel input");
 
 	window.addEventListener("resize", windowResized);
-	window.addEventListener("mouseup", canvasMouseUp);
-	window.addEventListener("touchend", canvasMouseUp);
+	window.addEventListener("mouseup", windowMouseUp);
+	window.addEventListener("touchend", windowMouseUp);
 	window.addEventListener("mousemove", windowMouseMoved);
 	window.addEventListener("keypress", keyPressed);
 	window.addEventListener("beforeunload", beforeWindowUnloaded);
@@ -911,7 +941,6 @@ window.addEventListener("load", () =>
 	canvas.addEventListener("mouseout", canvasMouseOut);
 	canvas.addEventListener("mousedown", canvasMouseDown);
 	canvas.addEventListener("touchstart", canvasTouchStart);
-	canvas.addEventListener("mouseup", canvasMouseUp);
 	canvas.addEventListener("touchend", canvasTouchEnded);
 	roomUrlLink.addEventListener("click", roomUrlClicked);
 	saveBtn.addEventListener("click", saveBtnClicked);

@@ -1,7 +1,8 @@
 class Tool
 {
-	constructor(style, size, color, blur=3, operation="source-over")
+	constructor(type, style, size, color, blur=3, operation="source-over")
 	{
+		this.type = type;
 		this.style = style;
 		this.size = size;
 		this.color = color;

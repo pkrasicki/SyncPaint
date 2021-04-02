@@ -1,10 +1,11 @@
 import Tool from "./tool";
+import ToolType from "../models/tool-type";
 
 class Eraser extends Tool
 {
 	constructor(size, color)
 	{
-		super("round", size, color, 0, "destination-out");
+		super(ToolType.ERASER, "round", size, color, 0, "destination-out");
 	}
 }
 

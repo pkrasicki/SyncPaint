@@ -1,10 +1,11 @@
 import Tool from "./tool";
+import ToolType from "../models/tool-type";
 
 class PaintRoller extends Tool
 {
 	constructor(size, color)
 	{
-		super("butt", size, color, 1);
+		super(ToolType.PAINT_ROLLER, "butt", size, color, 1);
 	}
 }
 

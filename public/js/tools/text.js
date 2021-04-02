@@ -1,10 +1,11 @@
 import Tool from "./tool";
+import ToolType from "../models/tool-type";
 
 class Text extends Tool
 {
 	constructor(size, color)
 	{
-		super("round", size, color, 0);
+		super(ToolType.TEXT, "round", size, color, 0);
 	}
 }
 
