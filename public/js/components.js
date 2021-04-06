@@ -1,7 +1,9 @@
 import Slider from "./components/slider/slider";
+import Toolbar from "./components/toolbar/toolbar";
 
 const components = [
-	{selector: "ui-slider", component: Slider}
+	{selector: "ui-slider", component: Slider},
+	{selector: "ui-toolbar", component: Toolbar}
 ];
 
 // create custom components

@@ -31,7 +31,14 @@ module.exports =
 				use:
 				[
 					"css-loader",
-					"sass-loader"
+					"resolve-url-loader",
+					{
+						loader: "sass-loader",
+						options:
+						{
+							sourceMap: true
+						}
+					}
 				]
 			},
 			{
@@ -42,7 +49,14 @@ module.exports =
 						loader: MiniCssExtract.loader
 					},
 					"css-loader",
-					"sass-loader"
+					"resolve-url-loader",
+					{
+						loader: "sass-loader",
+						options:
+						{
+							sourceMap: true
+						}
+					}
 				]
 			},
 			{

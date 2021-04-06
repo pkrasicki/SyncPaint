@@ -1,7 +1,6 @@
 import "../scss/main.scss";
 import "../scss/draw.scss";
 import "lato-font";
-import "../../node_modules/@fortawesome/fontawesome-free/css/all.css";
 import "../favicon.ico";
 import Brush from "./tools/brush";
 import Pencil from "./tools/pencil";
@@ -29,7 +28,7 @@ const DEFAULT_PAINT_TOOL = "Brush";
 const NET_CURSOR_UPDATE_INTERVAL_MS = 50;
 const notificationSystem = new NotificationSystem();
 let canvas, socket, ctx, bgCtx, colorSelector, backgroundSelectionModal, sizeValueSpan,
-	brushSizeMenu, roomUrlLink;
+	brushSizeMenu, roomUrlLink, toolbar;
 let isDrawing = false;
 let paintTool = getTool(DEFAULT_PAINT_TOOL, DEFAULT_BRUSH_SIZE, DEFAULT_PAINT_COLOR);
 let drawingStartPos = new Vector();
@@ -122,88 +121,33 @@ function loadCanvasData(ctx, canvasData)
 	canvasImage.src = canvasData;
 }
 
-// toolbar tool icon clicked
-function paintToolSwitch(e)
+function paintToolSwitched(e)
 {
-	const type = e.currentTarget.dataset.tooltype;
-
-	// background image is not a tool
-	if (type == "BackgroundImage")
-		return;
-
-	let previouslySelected = document.querySelector(".selected");
-
-	if (previouslySelected)
-		previouslySelected.classList.remove("selected");
-
-	e.target.classList.add("selected");
-
-	paintTool = getTool(type, paintTool.size, paintTool.color);
+	paintTool = getTool(e.detail, paintTool.size, paintTool.color);
 	updateBrushPreview();
 }
 
 // color change by clicking a toolbar icon or editing color input
 function paintColorChanged(e, color=null)
 {
-	const previouslySelected = document.querySelector(".selected-color");
 
-	if (previouslySelected)
-		previouslySelected.classList.remove("selected-color");
-
-	if (e != null)
+	if (e != null && e.target == colorSelector)
 	{
-		if (e.target == colorSelector)
-		{
-			color = e.target.value;
-		} else
-		{
-			color = e.target.dataset.color;
-			colorSelector.parentElement.style.backgroundColor = color;
-			e.target.classList.add("selected-color");
-		}
+		color = e.target.value;
+		toolbar.clearSelectedColor();
+
 	} else
 	{
+		if (e != null) // changed by toolbar
+			color = e.detail;
+		else // changed by color picker
+			toolbar.clearSelectedColor();
+
 		colorSelector.parentElement.style.backgroundColor = color;
 	}
 
 	paintTool.setColor(color);
 	updateBrushPreview();
-}
-
-// makes toolbar icons clickable
-function initToolbarIcons(toolbar)
-{
-	var isDefaultToolFound = false;
-	const toolIcons = toolbar.querySelectorAll("ul > li i.btn-tool");
-	toolIcons.forEach(icon =>
-	{
-		const listItem = icon.parentElement;
-		if (!isDefaultToolFound && listItem.dataset.tooltype == DEFAULT_PAINT_TOOL)
-		{
-			icon.classList.add("selected");
-			isDefaultToolFound = true;
-		}
-
-		if (listItem.dataset.tooltype == "BackgroundImage")
-			listItem.addEventListener("click", () => backgroundSelectionModal.toggle());
-
-		if (!icon.classList.contains("disabled"))
-			listItem.addEventListener("click", paintToolSwitch);
-	});
-
-	var isDefaultColorFound = false;
-	const toolbarColors = toolbar.querySelectorAll(".btn-color");
-	toolbarColors.forEach(item =>
-	{
-		if (!isDefaultColorFound && item.dataset.color == DEFAULT_PAINT_COLOR)
-		{
-			item.classList.add("selected-color");
-			isDefaultColorFound = true;
-		}
-
-		item.style.backgroundColor = item.dataset.color;
-		item.addEventListener("click", paintColorChanged);
-	});
 }
 
 // get tool object by name
@@ -944,7 +888,6 @@ window.addEventListener("load", () =>
 	ctx = canvas.getContext("2d");
 	const bgCanvas = document.querySelector("#bgCanvas");
 	bgCtx = bgCanvas.getContext("2d");
-	const toolbar = document.querySelector(".toolbar");
 	roomUrlLink = document.querySelector("#room-url");
 	const saveBtn = document.querySelector("#save");
 	colorSelector = document.querySelector("#color-selector");
@@ -988,10 +931,15 @@ window.addEventListener("load", () =>
 
 	initializeSocket();
 	setCanvasSize(defaultCanvasSize());
-	initToolbarIcons(toolbar);
 	createLocalBrushPreview();
 
 	initComponents();
+
+	toolbar = document.querySelector("#toolbar");
+	toolbar.initButtons(DEFAULT_PAINT_TOOL, DEFAULT_PAINT_COLOR);
+	toolbar.addEventListener("toolSwitch", paintToolSwitched);
+	toolbar.addEventListener("colorSwitch", paintColorChanged);
+	toolbar.addEventListener("bgSettingsOpen", () => backgroundSelectionModal.toggle());
 
 	initSizeSliders();
 	document.querySelectorAll("ui-slider").forEach((slider) =>
