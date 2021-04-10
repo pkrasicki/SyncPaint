@@ -969,6 +969,7 @@ window.addEventListener("load", () =>
 	toolbar.addEventListener("toolSwitch", paintToolSwitched);
 	toolbar.addEventListener("colorSwitch", paintColorChanged);
 	toolbar.addEventListener("bgSettingsOpen", () => backgroundSelectionModal.toggle());
+	toolbar.addEventListener("paste", textPasted);
 
 	initSizeSliders();
 	document.querySelectorAll("ui-slider").forEach((slider) =>

@@ -9,6 +9,17 @@ class Toolbar extends Component
 	{
 		super(htmlTemplate, stylesheet);
 		this.element = this.shadowRoot.querySelector(".toolbar");
+
+		// workaround for paste being broken after clicking on toolbar
+		this.element.addEventListener("paste", (e) =>
+		{
+			const format = "Text";
+			let newClipboardData = new DataTransfer();
+			newClipboardData.setData(format, e.clipboardData.getData(format));
+			let event = new Event("paste");
+			event.clipboardData = newClipboardData;
+			this.dispatchEvent(event);
+		});
 	}
 
 	// make icons clickable
