@@ -5,7 +5,7 @@ class Rect extends Tool
 {
 	constructor(size, color)
 	{
-		super(ToolType.RECT, "round", size, color, 0);
+		super(ToolType.RECT, "butt", size, color, 0);
 	}
 
 	draw(ctx, posX, posY, endPosX, endPosY)
