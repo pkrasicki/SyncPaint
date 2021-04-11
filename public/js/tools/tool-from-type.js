@@ -7,6 +7,7 @@ import Text from "./text";
 import Fill from "./fill";
 import ColorPicker from "./color-picker";
 import Rect from "./rect";
+import Line from "./line";
 
 const toolFromType = (toolType, size, color) =>
 {
@@ -28,6 +29,8 @@ const toolFromType = (toolType, size, color) =>
 			return new ColorPicker(size, color);
 		case ToolType.RECT:
 			return new Rect(size, color);
+		case ToolType.LINE:
+			return new Line(size, color);
 		default:
 			console.error("wrong tool type:", toolType);
 			return null;

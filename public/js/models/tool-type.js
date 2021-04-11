@@ -7,7 +7,8 @@ const ToolType =
 	TEXT: 4,
 	FILL: 5,
 	COLOR_PICKER: 6,
-	RECT: 7
+	RECT: 7,
+	LINE: 8
 };
 
 export default ToolType;

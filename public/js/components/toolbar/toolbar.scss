@@ -11,6 +11,9 @@
 	font-size: 26px;
 	grid-column: 1;
 	touch-action: none; // prevent accidental scrolling on touch screen
+	-moz-user-select: none;
+	-webkit-user-select: none;
+	user-select: none;
 
 	.toolbar-logo
 	{
@@ -99,5 +102,10 @@
 		{
 			color: $disabledColorHover;
 		}
+	}
+
+	.line-icon
+	{
+		font-weight: bold;
 	}
 }

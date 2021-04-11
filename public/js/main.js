@@ -8,6 +8,7 @@ import Text from "./tools/text";
 import Fill from "./tools/fill";
 import ColorPicker from "./tools/color-picker";
 import Rect from "./tools/rect";
+import Line from "./tools/line";
 import Notification from "./notification/notification";
 import NotificationSystem from "./notification/notification-system";
 import DrawingData from "./models/drawing-data";
@@ -216,7 +217,8 @@ function canvasMouseMoved(e)
 
 			updateDrawingPos(null, new Vector(posX, posY));
 
-			if (paintTool instanceof Rect == false)
+			// not a shape tool
+			if (paintTool instanceof Rect == false && paintTool instanceof Line == false)
 			{
 				const drawingData = new DrawingData(drawingStartPos, drawingEndPos, paintTool);
 				draw(drawingData);
@@ -226,6 +228,7 @@ function canvasMouseMoved(e)
 			}
 		}
 
+		// shape tools
 		if (paintTool instanceof Rect)
 		{
 			setContextProperties(shapePreviewCtx, paintTool);
@@ -235,6 +238,16 @@ function canvasMouseMoved(e)
 			let posX = e.offsetX;
 			let posY = e.offsetY;
 			rect.draw(shapePreviewCtx, drawingStartPos.x, drawingStartPos.y, posX, posY);
+
+		} else if (paintTool instanceof Line)
+		{
+			setContextProperties(shapePreviewCtx, paintTool);
+			shapePreviewCtx.clearRect(0, 0, shapePreviewCtx.canvas.width, shapePreviewCtx.canvas.height);
+
+			let line = new Line(paintTool.size, paintTool.color);
+			let posX = e.offsetX;
+			let posY = e.offsetY;
+			line.draw(shapePreviewCtx, drawingStartPos.x, drawingStartPos.y, posX, posY);
 		}
 	}
 }
@@ -284,7 +297,7 @@ function windowMouseUp(e)
 		return;
 	}
 
-	if (isDrawing && paintTool instanceof Rect)
+	if (isDrawing && (paintTool instanceof Rect || paintTool instanceof Line))
 	{
 		// clear preview
 		shapePreviewCtx.clearRect(0, 0, shapePreviewCtx.canvas.width, shapePreviewCtx.canvas.height);
@@ -383,6 +396,11 @@ function draw(drawingData)
 		let rect = new Rect(drawingData.tool.size, drawingData.tool.color);
 		rect.draw(ctx, posX, posY, drawingData.endPos.x, drawingData.endPos.y);
 
+	} else if (drawingData.tool.type == ToolType.LINE)
+	{
+		let line = new Line(drawingData.tool.size, drawingData.tool.color);
+		line.draw(ctx, posX, posY, drawingData.endPos.x, drawingData.endPos.y);
+
 	} else
 	{
 		ctx.beginPath();
@@ -408,7 +426,7 @@ function drawSinglePoint(posX, posY)
 		let color = paintTool.getPixelColor(ctx, bgCtx, posX, posY);
 		paintColorChanged(null, color);
 
-	} else if (paintTool instanceof Rect)
+	} else if (paintTool instanceof Rect || paintTool instanceof Line) // shape tools
 	{
 		isDrawing = true;
 
@@ -482,7 +500,8 @@ function updateBrushPreview()
 		document.querySelector(".text-cursor").style.height = `${size}px`;
 		updateTextCursorPos();
 
-	} else if (paintTool instanceof Fill || paintTool instanceof ColorPicker || paintTool instanceof Rect)
+	} else if (paintTool instanceof Fill || paintTool instanceof ColorPicker ||
+		paintTool instanceof Rect || paintTool instanceof Line)
 	{
 		brushPreview.style.display = "none";
 		canvas.style.cursor = "crosshair";

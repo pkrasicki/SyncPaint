@@ -26,7 +26,7 @@ class Toolbar extends Component
 	initButtons(defaultTool, defaultColor)
 	{
 		let isDefaultToolFound = false;
-		const toolIcons = this.element.querySelectorAll("ul > li i.btn-tool");
+		const toolIcons = this.element.querySelectorAll("ul > li .btn-tool");
 		toolIcons.forEach(icon =>
 		{
 			const listItem = icon.parentElement;
