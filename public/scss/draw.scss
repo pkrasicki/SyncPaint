@@ -454,12 +454,6 @@ canvas.progress
 	{
 		display: inline-block;
 	}
-
-	.toolbar
-	{
-		padding: 0 5px;
-		font-size: 24px;
-	}
 }
 
 @media(max-width: 640px)
@@ -535,51 +529,9 @@ canvas.progress
 		display: none;
 	}
 
-	.toolbar-logo
-	{
-		display: none;
-	}
-
 	.options-panel
 	{
 		width: 130px;
-	}
-
-	.toolbar
-	{
-		padding: 0;
-	}
-}
-
-@media(max-height: 700px)
-{
-	.toolbar
-	{
-		font-size: 22px;
-
-		.separator
-		{
-			padding: 6px 4px 10px 4px;
-			margin-bottom: 7px;
-		}
-
-		.color-separator
-		{
-			margin-top: 10px;
-		}
-
-		.btn-tool
-		{
-			padding: 6px;
-			margin-bottom: 0px;
-		}
-
-		.btn-color
-		{
-			width: 15px;
-			height: 15px;
-			margin-bottom: 5px;
-		}
 	}
 }
 
