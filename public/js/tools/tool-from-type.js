@@ -8,6 +8,7 @@ import Fill from "./fill";
 import ColorPicker from "./color-picker";
 import Rect from "./rect";
 import Line from "./line";
+import Ellipse from "./ellipse";
 
 const toolFromType = (toolType, size, color) =>
 {
@@ -31,6 +32,8 @@ const toolFromType = (toolType, size, color) =>
 			return new Rect(size, color);
 		case ToolType.LINE:
 			return new Line(size, color);
+		case ToolType.ELLIPSE:
+			return new Ellipse(size, color);
 		default:
 			console.error("wrong tool type:", toolType);
 			return null;

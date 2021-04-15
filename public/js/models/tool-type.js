@@ -8,7 +8,8 @@ const ToolType =
 	FILL: 5,
 	COLOR_PICKER: 6,
 	RECT: 7,
-	LINE: 8
+	LINE: 8,
+	ELLIPSE: 9
 };
 
 export default ToolType;

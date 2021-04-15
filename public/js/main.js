@@ -9,6 +9,7 @@ import Fill from "./tools/fill";
 import ColorPicker from "./tools/color-picker";
 import Rect from "./tools/rect";
 import Line from "./tools/line";
+import Ellipse from "./tools/ellipse";
 import Notification from "./notification/notification";
 import NotificationSystem from "./notification/notification-system";
 import DrawingData from "./models/drawing-data";
@@ -218,7 +219,8 @@ function canvasMouseMoved(e)
 			updateDrawingPos(null, new Vector(posX, posY));
 
 			// not a shape tool
-			if (paintTool instanceof Rect == false && paintTool instanceof Line == false)
+			if (paintTool instanceof Rect == false && paintTool instanceof Line == false &&
+				paintTool instanceof Ellipse == false)
 			{
 				const drawingData = new DrawingData(drawingStartPos, drawingEndPos, paintTool);
 				draw(drawingData);
@@ -234,7 +236,10 @@ function canvasMouseMoved(e)
 			setContextProperties(shapePreviewCtx, paintTool);
 			shapePreviewCtx.clearRect(0, 0, shapePreviewCtx.canvas.width, shapePreviewCtx.canvas.height);
 
-			let rect = new Rect(paintTool.size, paintTool.color);
+			let isSquare = e.shiftKey;
+			paintTool.square = isSquare;
+
+			let rect = new Rect(paintTool.size, paintTool.color, isSquare);
 			let posX = e.offsetX;
 			let posY = e.offsetY;
 			rect.draw(shapePreviewCtx, drawingStartPos.x, drawingStartPos.y, posX, posY);
@@ -248,6 +253,19 @@ function canvasMouseMoved(e)
 			let posX = e.offsetX;
 			let posY = e.offsetY;
 			line.draw(shapePreviewCtx, drawingStartPos.x, drawingStartPos.y, posX, posY);
+
+		} else if (paintTool instanceof Ellipse)
+		{
+			let isCircle = e.shiftKey;
+			paintTool.circle = isCircle;
+
+			setContextProperties(shapePreviewCtx, paintTool);
+			shapePreviewCtx.clearRect(0, 0, shapePreviewCtx.canvas.width, shapePreviewCtx.canvas.height);
+
+			let ellipse = new Ellipse(paintTool.size, paintTool.color, isCircle);
+			let posX = e.offsetX;
+			let posY = e.offsetY;
+			ellipse.draw(shapePreviewCtx, drawingStartPos.x, drawingStartPos.y, posX, posY);
 		}
 	}
 }
@@ -297,7 +315,8 @@ function windowMouseUp(e)
 		return;
 	}
 
-	if (isDrawing && (paintTool instanceof Rect || paintTool instanceof Line))
+	if (isDrawing && (paintTool instanceof Rect || paintTool instanceof Line ||
+		paintTool instanceof Ellipse))
 	{
 		// clear preview
 		shapePreviewCtx.clearRect(0, 0, shapePreviewCtx.canvas.width, shapePreviewCtx.canvas.height);
@@ -311,6 +330,10 @@ function windowMouseUp(e)
 		}
 
 		const drawingData = new DrawingData(drawingStartPos, drawingEndPos, paintTool);
+		// TODO: check if this is needed
+		if (paintTool instanceof Rect)
+			drawingData.square = paintTool.square;
+
 		draw(drawingData);
 		socket.emit("draw", drawingData);
 	}
@@ -393,13 +416,18 @@ function draw(drawingData)
 
 	} else if (drawingData.tool.type == ToolType.RECT)
 	{
-		let rect = new Rect(drawingData.tool.size, drawingData.tool.color);
+		let rect = new Rect(drawingData.tool.size, drawingData.tool.color, drawingData.tool.square);
 		rect.draw(ctx, posX, posY, drawingData.endPos.x, drawingData.endPos.y);
 
 	} else if (drawingData.tool.type == ToolType.LINE)
 	{
 		let line = new Line(drawingData.tool.size, drawingData.tool.color);
 		line.draw(ctx, posX, posY, drawingData.endPos.x, drawingData.endPos.y);
+
+	} else if (drawingData.tool.type == ToolType.ELLIPSE)
+	{
+		let ellipse = new Ellipse(drawingData.tool.size, drawingData.tool.color, drawingData.tool.circle);
+		ellipse.draw(ctx, posX, posY, drawingData.endPos.x, drawingData.endPos.y);
 
 	} else
 	{
@@ -426,7 +454,8 @@ function drawSinglePoint(posX, posY)
 		let color = paintTool.getPixelColor(ctx, bgCtx, posX, posY);
 		paintColorChanged(null, color);
 
-	} else if (paintTool instanceof Rect || paintTool instanceof Line) // shape tools
+	} else if (paintTool instanceof Rect || paintTool instanceof Line ||
+		paintTool instanceof Ellipse) // shape tools
 	{
 		isDrawing = true;
 
@@ -501,7 +530,7 @@ function updateBrushPreview()
 		updateTextCursorPos();
 
 	} else if (paintTool instanceof Fill || paintTool instanceof ColorPicker ||
-		paintTool instanceof Rect || paintTool instanceof Line)
+		paintTool instanceof Rect || paintTool instanceof Line || paintTool instanceof Ellipse)
 	{
 		brushPreview.style.display = "none";
 		canvas.style.cursor = "crosshair";
