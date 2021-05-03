@@ -15,7 +15,7 @@ class Ellipse extends Tool
 
 		if (this.circle)
 		{
-			let radius = Math.min(Math.abs(endPosX - posX), Math.abs(endPosY - posY)) / 2;
+			let radius = Math.max(Math.abs(endPosX - posX), Math.abs(endPosY - posY)) / 2;
 			let offsetDirectionX = Math.sign(endPosX - posX);
 			let offsetDirectionY = Math.sign(endPosY - posY);
 			let centerX = posX + radius * offsetDirectionX;
