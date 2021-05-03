@@ -1,6 +1,6 @@
 {
   "name": "syncpaint",
-  "version": "0.7.2",
+  "version": "0.8.0",
   "license": "GPL-3.0-only",
   "description": "A web app for synchronized group drawing",
   "scripts": {
@@ -12,7 +12,8 @@
   "keywords": [
     "group drawing",
     "synchronized drawing",
-    "synchronized paint"
+    "synchronized paint",
+    "online whiteboard"
   ],
   "author": "pkrasicki",
   "repository": {
