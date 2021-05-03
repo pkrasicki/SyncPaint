@@ -380,7 +380,7 @@ function draw(drawingData)
 
 	if (drawingData.tool.type == ToolType.TEXT && drawingData.text != null && drawingData.text != "")
 	{
-		ctx.font = `${drawingData.tool.size}px sans-serif`;
+		ctx.font = `${drawingData.tool.size}px Lato`;
 		ctx.fillStyle = drawingData.tool.color;
 		ctx.fillText(drawingData.text, posX, posY);
 
