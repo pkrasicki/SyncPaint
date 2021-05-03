@@ -11,33 +11,28 @@ class Rect extends Tool
 
 	draw(ctx, posX, posY, endPosX, endPosY)
 	{
-		let startPosX = posX;
-		let startPosY = posY;
-		let width = Math.abs(endPosX - posX);
-		let height = Math.abs(endPosY - posY);
-
-		if (endPosX < posX)
-			startPosX = endPosX;
-
-		if (endPosY < posY)
-			startPosY = endPosY;
-
 		ctx.beginPath();
 
-		// TODO: make this work - it's buggy
-		// if (this.square)
-		// {
-		// 	let size = width;
-		// 	if (height > width)
-		// 		size = height;
+		if (this.square)
+		{
+			const size = Math.max(Math.abs(endPosX - posX), Math.abs(endPosY - posY));
+			const offsetDirectionX = Math.sign(endPosX - posX);
+			const offsetDirectionY = Math.sign(endPosY - posY);
+			const width = size * offsetDirectionX;
+			const height = size * offsetDirectionY;
 
-		// 	ctx.rect(startPosX, startPosY, size, size);
-		// } else
-		// {
-			// ctx.rect(startPosX, startPosY, width, height);
-		// }
+			ctx.rect(posX, posY, width, height);
 
-		ctx.rect(startPosX, startPosY, width, height);
+		} else
+		{
+			const startPosX = Math.min(posX, endPosX);
+			const startPosY = Math.min(posY, endPosY);
+			const width = Math.abs(endPosX - posX);
+			const height = Math.abs(endPosY - posY);
+
+			ctx.rect(startPosX, startPosY, width, height);
+		}
+
 		ctx.stroke();
 	}
 }
