@@ -27,7 +27,8 @@ module.exports =
 		rules:
 		[
 			{
-				test: /public\/js\/components\/.*\.scss$/,
+				test: /\.scss$/,
+				include: [path.resolve(__dirname, "public/js/components")],
 				use:
 				[
 					"css-loader",
@@ -42,7 +43,8 @@ module.exports =
 				]
 			},
 			{
-				test: /public\/scss\/.*\.scss$/,
+				test: /\.scss$/,
+				include: [path.resolve(__dirname, "public/scss")],
 				use:
 				[
 					{
