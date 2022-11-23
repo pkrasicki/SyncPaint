@@ -39,6 +39,6 @@
     "@fortawesome/fontawesome-free": "^5.15.3",
     "express": "^4.17.1",
     "lato-font": "^3.0.0",
-    "socket.io": "^2.4.1"
+    "socket.io": "^2.5.0"
   }
 }
